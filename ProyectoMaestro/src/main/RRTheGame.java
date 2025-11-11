@@ -11,7 +11,7 @@ import javax.swing.JFrame;
  *        juego para que se ejecute.
  */
 public class RRTheGame {
-
+//hola
 	/**
 	 * Método principal que la Máquina Virtual de Java ejecuta al iniciar el
 	 * programa. Configura y lanza la ventana del juego. * @param args Argumentos de
