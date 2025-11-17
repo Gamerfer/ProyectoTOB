@@ -2,7 +2,7 @@ package main;
 
 import javax.swing.JFrame;
 
-//Holadasfsfa
+//Adios
 
 /**
  * @author Los Ratones

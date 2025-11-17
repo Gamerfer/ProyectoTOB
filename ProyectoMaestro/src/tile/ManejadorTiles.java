@@ -17,16 +17,11 @@ import main.GamePanel;
  *        mapa en la pantalla.
  */
 public class ManejadorTiles {
-	// Se establece como final para Prevenir Errores al asignar por error una nueva
-	// instancia.
+	// Se establece como final para Prevenir Errores al asignar por error una nueva instancia.
 	// El objeto nace con una conexión a un panel específico y no debe romperse.
 	private final GamePanel gP;
-	// Número máximo de tipos diferentes de mosaicos que el juego puede manejar.
-	private final int maxTiles = 10; // constante de configuración
-
-	// El array (catálogo) de mosaicos. 'final' impide reasignar el array, pero su
-	// contenido puede cambiar.
-	private final Tile[] arregloTiles;
+	private final int maxTiles = 10; // Número máximo de tipos diferentes de mosaicos que el juego puede manejar.
+	private final Tile[] arregloTiles;	// El array (catálogo) de mosaicos. 'final' impide reasignar el array, pero su contenido puede cambiar.
 	// Matriz 2D que representa la estructura del mapa. Cada celda contiene un
 	// código que corresponde a un índice en 'arregloTiles'.
 	private final int[][] codigosMapaTiles;

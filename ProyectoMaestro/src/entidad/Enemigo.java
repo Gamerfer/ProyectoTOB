@@ -39,8 +39,7 @@ public class Enemigo extends Entidad {
         this.setPosicionAleatoria();
 
         // Velocidad de movimiento.
-        this.velocidad = 2; 
-
+        this.velocidad = 2;
         this.direccion = "abajo"; 
         
         //vida del enemigo
@@ -100,6 +99,7 @@ public class Enemigo extends Entidad {
 
     /**
      * Implementa una IA simple para que el enemigo se mueva hacia el jugador.
+     * Establece la direccion basado en la distancia de los ejes 'x' y 'y' con respecto al jugador
      */
     private void establecerDireccionDeSeguimiento() {
         // Obtener la posición del jugador (Jugador.getMundoX() y Jugador.getMundoY()) [6].

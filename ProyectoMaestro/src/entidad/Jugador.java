@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
 import main.GamePanel;
 import main.ManejadorTeclas;
@@ -19,94 +21,70 @@ import main.ManejadorTeclas;
  */
 public class Jugador extends Entidad {
 
+	private ArrayList<Proyectil> proyectil = new ArrayList<Proyectil>();
 	// --- REFERENCIAS A COMPONENTES PRINCIPALES ---
-	// Se establecen como finales para asegurar la "Inmutabilidad de la Referencia".
-	// El objeto Jugador nace con una conexión a un panel específico, y esa conexión
-	// no debe romperse.
 	private final GamePanel gP;
-	// El objeto Jugador nace con una conexión a un controlador de teclas
-	// específico, y esa conexión no debe romperse.
 	private final ManejadorTeclas mT;
 
-	// --- COORDENADAS EN PANTALLA ---
+
+	private long tInicio = 0;
+	private long tiempo = 0;
+	private int rango;
+	private int velDisparo;
+
+	/* --- COORDENADAS EN PANTALLA ---
 	// Coordenadas FINALES y FIJAS del jugador en la PANTALLA.
-	// El jugador siempre se dibuja en el centro; es el mapa el que se mueve.
+	// El jugador siempre se dibuja en el centro; es el mapa el que se mueve.*/
 	private final int pantallaX;
 	private final int pantallaY;
 
-	/**
-	 * Constructor de la clase Jugador. * @param gP Referencia al {@link GamePanel}
-	 * principal.
-	 * 
-	 * @param mT Referencia al {@link ManejadorTeclas} para la entrada del usuario.
-	 */
 	public Jugador(GamePanel gP, ManejadorTeclas mT) {
-		// Asigna la referencia del GamePanel principal.
 		this.gP = gP;
-		// Asigna la referencia del ManejadorTeclas.
 		this.mT = mT;
 
-		// Calcula la posición X central en la pantalla.
-		// Se resta la mitad del tamaño del mosaico para que el CENTRO del jugador quede
-		// en el centro de la pantalla.
-		this.pantallaX = gP.getAnchoPantalla() / 2 - (gP.getTamanioTile() / 2);
-		// Calcula la posición Y central en la pantalla.
-		this.pantallaY = gP.getAltoPantalla() / 2 - (gP.getTamanioTile() / 2);
+	
+		// Se resta la mitad del tamaño del mosaico para que el CENTRO del jugador quede en el centro de la pantalla.
+		this.pantallaX = gP.getAnchoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición X central en la pantalla.
+		this.pantallaY = gP.getAltoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición Y central en la pantalla.
+		this.areaSolida = new Rectangle(8, 16, 32, 32);								// Define el área sólida (hitbox) del jugador. new Rectangle(x, y, ancho, alto) relativo a la esquina superior izquierda del sprite.
 
-		// Define el área sólida (hitbox) del jugador. new Rectangle(x, y, ancho, alto)
-		// relativo a la esquina superior izquierda del sprite.
-		this.areaSolida = new Rectangle(8, 16, 32, 32);
-
-		// Llama a los métodos para establecer los valores iniciales y cargar los
-		// gráficos.
-		this.configuracionInicial(); // Establece la posición, velocidad, etc.
-		this.getSpritesJugador(); // Carga las imágenes del personaje.
+		// Llama a los métodos para establecer los valores iniciales y cargar los gráficos.
+		this.configuracionInicial(); 												// Establece la posición, velocidad, etc.
+		this.getSpritesJugador(); 													// Carga las imágenes del personaje.
 	}
 
-	/**
-	 * Establece los valores por defecto del jugador al iniciar el juego.
-	 */
+
+	 //Establece los valores por defecto del jugador al iniciar el juego.
 	public void configuracionInicial() {
-		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
-		this.mundoX = gP.getTamanioTile() * 22;
-		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
-		this.mundoY = gP.getTamanioTile() * 30;
-		// Velocidad de movimiento del jugador en píxeles por fotograma.
-		this.velocidad = 4;
-		// Dirección inicial a la que mira el jugador.
-		this.direccion = "abajo";
+
+		this.mundoX = gP.getTamanioTile() * 22;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
+		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
+		this.velocidad = 4;							// Velocidad de movimiento del jugador en píxeles por fotograma.
+		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
+		this.rango = 5;								// Que tan lejos va a llegar el proyectil(WIP)
+		this.velDisparo = 20;						// Que tan rapido dispara el jugador
 		
 		//inicializar vida
 		this.maxVida = 10;
 		this.vidaActual = 10;
 	}
 
-	/**
-	 * Carga las imágenes (sprites) del jugador desde la carpeta de recursos.
-	 */
+
+	//Carga las imágenes (sprites) del jugador desde la carpeta de recursos.
 	public void getSpritesJugador() {
 		try {
-			// getClass().getResourceAsStream() es la forma estándar de acceder a recursos
-			// dentro del proyecto.
-			// Carga el primer sprite para el movimiento hacia arriba.
+			// getClass().getResourceAsStream() es la forma estándar de acceder a recursos dentro del proyecto.
+			// Carga sprite para el movimiento
 			this.arriba1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba1.png"));
-			// Carga el segundo sprite para el movimiento hacia arriba.
 			this.arriba2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba2.png"));
-			// Carga el primer sprite para el movimiento hacia abajo.
 			this.abajo1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo1.png"));
-			// Carga el segundo sprite para el movimiento hacia abajo.
 			this.abajo2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo2.png"));
-			// Carga el primer sprite para el movimiento hacia la izquierda.
 			this.izquierda1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda1.png"));
-			// Carga el segundo sprite para el movimiento hacia la izquierda.
 			this.izquierda2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda2.png"));
-			// Carga el primer sprite para el movimiento hacia la derecha.
 			this.derecha1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha1.png"));
-			// Carga el segundo sprite para el movimiento hacia la derecha.
 			this.derecha2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha2.png"));
 		} catch (IOException e) {
-			// Si ocurre un error al cargar las imágenes (ej: archivo no encontrado), se
-			// imprime el error.
+			// Si ocurre un error al cargar las imágenes (ej: archivo no encontrado), se imprime el error.
 			e.printStackTrace();
 		}
 	}
@@ -116,25 +94,17 @@ public class Jugador extends Entidad {
 	 * la animación.
 	 */
 	public void update() {
-		// Solo procesa el movimiento y la animación si alguna tecla de dirección está
-		// pulsada.
+		
+		
+		// Solo procesa el movimiento y la animación si alguna tecla de dirección está pulsada.
 		if (mT.getTeclaArriba() || mT.getTeclaAbajo() || mT.getTeclaIzquierda() || mT.getTeclaDerecha()) {
 
 			// Comprueba la tecla pulsada y establece la dirección correspondiente.
-			if (this.mT.getTeclaArriba()) {
-				// Establece la dirección a "arriba". El movimiento se gestiona más adelante.
-				this.direccion = "arriba";
-			} else if (this.mT.getTeclaAbajo()) {
-				// Establece la dirección a "abajo".
-				this.direccion = "abajo";
-			} else if (this.mT.getTeclaIzquierda()) {
-				// Establece la dirección a "izquierda".
-				this.direccion = "izquierda";
-			} else if (this.mT.getTeclaDerecha()) {
-				// Establece la dirección a "derecha".
-				this.direccion = "derecha";
-			}
-
+			if 		(this.mT.getTeclaArriba()) {this.direccion = "arriba";} 											// Establece la dirección a "arriba". El movimiento se gestiona más adelante.
+			else if (this.mT.getTeclaAbajo()) {this.direccion = "abajo";}
+			else if (this.mT.getTeclaIzquierda()) {this.direccion = "izquierda";}
+			else if (this.mT.getTeclaDerecha()) {this.direccion = "derecha";}
+			
 			// Reinicia la bandera de colisión antes de cada comprobación.
 			this.colisionActivada = false;
 			// Llama al detector de colisiones para que revise si hay un obstáculo en la
@@ -150,21 +120,20 @@ public class Jugador extends Entidad {
 					this.setMundoY(this.getMundoY() - this.getVelocidad());
 					break;
 				case "abajo":
-					// Mueve al jugador hacia abajo en el mapa del mundo.
 					this.setMundoY(this.getMundoY() + this.getVelocidad());
 					break;
 				case "izquierda":
-					// Mueve al jugador hacia la izquierda en el mapa del mundo.
 					this.setMundoX(this.getMundoX() - this.getVelocidad());
 					break;
 				case "derecha":
-					// Mueve al jugador hacia la derecha en el mapa del mundo.
 					this.setMundoX(this.getMundoX() + this.getVelocidad());
 					break;
+
 				default:
 					break; // Caso por defecto, no hace nada.
 				}
 			}
+
 
 			// Incrementa el contador de sprites para la animación en cada fotograma de
 			// movimiento.
@@ -182,6 +151,23 @@ public class Jugador extends Entidad {
 				this.contadorSprites = 0;
 			}
 		}
+		
+		if(tiempo < 200)																						//Cuenta el tiempo mientras no se pase de 200 (200 para que no sume para siempre)
+			tiempo++;
+		
+		if (mT.getDisparo() && tiempo > velDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
+			tInicio = System.currentTimeMillis();																//Se marca el tiempo en el que se añadio el nuevo proyectil
+			gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));										//Se añade una nueva instancia de un proyectil a la lista de gamePanel
+			tiempo = 0;																							//resetea el tiempo para disparar otra vez
+		}
+		if(gP.getListaProjectil().size() > 0 && System.currentTimeMillis() - tInicio > 500) {
+			gP.getListaProjectil().removeFirst();																//Remueve los proyectiles una vez pasen 500 milisegundos
+			tInicio = 0;																						//Se reinicia el tiempo para cuando desaparescan
+		}
+		//+++++++BUG: se reinicia el tiempo para cada proyectil cada vez que se dispara!!!++++++++++
+		
+		
+
 	}
 
 	/**
@@ -189,54 +175,52 @@ public class Jugador extends Entidad {
 	 * {@link Graphics2D} para dibujar.
 	 */
 	public void draw(Graphics2D g2) {
-		// Declara una variable para almacenar el sprite que se va a dibujar.
-		BufferedImage sprite = null;
+		BufferedImage sprite = null;	// Declara una variable para almacenar el sprite que se va a dibujar.
 
-		// Selecciona el sprite correcto basado en la dirección y el número de sprite
-		// actual.
+		// Selecciona el sprite correcto basado en la dirección y el número de sprite actual.
 		switch (this.direccion) {
 		case "arriba":
 			// Usa el operador ternario para elegir entre el sprite 1 y 2 de "arriba".
 			sprite = (this.numeroSprites == 1) ? this.arriba1 : this.arriba2;
 			break;
 		case "abajo":
-			// Elige entre el sprite 1 y 2 de "abajo".
 			sprite = (this.numeroSprites == 1) ? this.abajo1 : this.abajo2;
 			break;
 		case "izquierda":
-			// Elige entre el sprite 1 y 2 de "izquierda".
 			sprite = (this.numeroSprites == 1) ? this.izquierda1 : this.izquierda2;
 			break;
 		case "derecha":
-			// Elige entre el sprite 1 y 2 de "derecha".
 			sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2;
 			break;
 		}
 		// --- LÓGICA DE DIBUJO DE LA BARRA DE VIDA (NUEVO) ---
-	    
+
 	    // El jugador se dibuja en coordenadas de pantalla fijas (pantallaX, pantallaY) [12, 13].
-	    int anchoBarra = gP.getTamanioTile(); 
-	    int altoBarra = 5; 
-	    int offsetY = 10; 
-	    
+	    int anchoBarra = gP.getTamanioTile();
+	    int altoBarra = 5;
+	    int offsetY = 10;
+
 	    int barraX = this.getPantallaX(); // [6]
 	    int barraY = this.getPantallaY() - offsetY; // [6]
-	    
+
 	    // 1. Fondo de la barra (Negro)
 	    g2.setColor(Color.BLACK);
 	    g2.fillRect(barraX, barraY, anchoBarra, altoBarra);
-	    
+
 	    // 2. Calcula el ancho de la vida actual.
 	    double proporcionVida = (double) this.vidaActual / this.maxVida;
 	    int vidaActualAncho = (int) (proporcionVida * anchoBarra);
-	    
+
 	    // 3. Dibuja la vida actual (Verde).
 	    g2.setColor(Color.GREEN);
 	    g2.fillRect(barraX, barraY, vidaActualAncho, altoBarra);
 
 		// Dibuja el sprite seleccionado en las coordenadas FIJAS de la pantalla.
 		// El jugador siempre está en el centro; el mapa se mueve a su alrededor.
-		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
+		g2.drawString(String.valueOf(System.currentTimeMillis()), 200, 100);						//(Debug) Tiempo de ejecucion
+		g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
+		g2.drawString(String.valueOf(tiempo), 200, 140);
+		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
 	}
 
 	// --- GETTERS Y SETTERS ---
