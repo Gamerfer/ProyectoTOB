@@ -61,7 +61,7 @@ public class Jugador extends Entidad {
 		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
 		this.velocidad = 4;							// Velocidad de movimiento del jugador en píxeles por fotograma.
 		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
-		this.rango = 5;								// Que tan lejos va a llegar el proyectil(WIP)
+		this.rango = 5;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
 		this.velDisparo = 20;						// Que tan rapido dispara el jugador
 		
 		//inicializar vida
@@ -164,7 +164,7 @@ public class Jugador extends Entidad {
 			gP.getListaProjectil().removeFirst();																//Remueve los proyectiles una vez pasen 500 milisegundos
 			tInicio = 0;																						//Se reinicia el tiempo para cuando desaparescan
 		}
-		//+++++++BUG: se reinicia el tiempo para cada proyectil cada vez que se dispara!!!++++++++++
+		//+++++++PROBLEMA: se reinicia el tiempo para cada proyectil cada vez que se dispara!!!++++++++++
 		
 		
 

@@ -109,7 +109,7 @@ public class Proyectil extends Entidad{
 
 		g2.setColor(Color.YELLOW);
 		g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile());
-		//PROBLEMA: No se porque no quiere cargar el sprite.
+		//++++++++++++++ PROBLEMA: No se porque no quiere cargar el sprite. ++++++++++++++
 		//g2.drawImage(sprite, 200, 100, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
 		g2.drawString(String.valueOf(gP.getListaProjectil().size()), 100, 100); 					//(Debug)Numero de proyectiles en pantalla
 	}
