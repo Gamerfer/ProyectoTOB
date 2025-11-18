@@ -4,10 +4,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 import javax.swing.JPanel;
 
 import entidad.Enemigo;
 import entidad.Jugador;
+import entidad.Proyectil;
 import tile.ManejadorTiles;
 
 /**
@@ -22,23 +24,25 @@ import tile.ManejadorTiles;
 public class GamePanel extends JPanel implements Runnable {
 
 	private static final long serialVersionUID = 6872273934923133050L;				// Identificador único para la serialización de la clase, requerido por JPanel.
+	
+	//--------------LO QUE SE MUESTRA EN PANTALLA-----------------------
 	private final int tamanioOriginalTile = 16;										// Tamaño original de los mosaicos (tiles) en píxeles (16x16).
 	private final int escala = 3;													// Escala a la que se dibujarán los elementos para hacerlos más grandes.
 	private final int tamanioTile = this.tamanioOriginalTile * this.escala;			// Tamaño final del mosaico (16 * 3 = 48 píxeles).
 
-																					// Dimensiones de la pantalla en términos de mosaicos.
-	private final int maxRenPantalla = 15;
+	// Dimensiones de la pantalla en términos de mosaicos.
 	private final int maxColPantalla = 26;
-
-																					// Dimensiones de la pantalla en píxeles, calculadas a partir de los mosaicos.
+	private final int maxRenPantalla = 15;
+	
+	// Dimensiones de la pantalla en píxeles, calculadas a partir de los mosaicos.
 	private final int anchoPantalla = this.tamanioTile * this.maxColPantalla;		// 48 * 26 = 1248 píxeles
 	private final int altoPantalla = this.tamanioTile * this.maxRenPantalla;		// 48 * 15 = 720 píxeles
 
-																					// Dimensiones del mapa del mundo completo en términos de mosaicos.
+	//-------------DIMENSIONES DEL MAPA EN TERMINOS DE MOSAICOS--------------------------
 	private final int maxRenMundo = 50; 											// constante de configuración
 	private final int maxColMundo = 50; 											// constante de configuración
 
-																					// Dimensiones del mundo en píxeles
+	// Dimensiones del mundo en píxeles
 	private final int anchoMundo = this.tamanioTile * this.maxColMundo;
 	private final int altoMundo = this.tamanioTile * this.maxRenMundo;
 
@@ -51,6 +55,7 @@ public class GamePanel extends JPanel implements Runnable {
 	private final DetectorColisiones dC = new DetectorColisiones(this);
 	private final Jugador jugador = new Jugador(this, this.mT);
 	private final Enemigo enemigo = new Enemigo(this);
+	private final ArrayList<Proyectil> listaProjectil= new ArrayList<Proyectil>();		// Lista de proyectiles creados por el jugador
 	private final ManejadorTiles mTi = new ManejadorTiles(this); 				//gestiona el mapa.
 
 	/**
@@ -104,6 +109,9 @@ public class GamePanel extends JPanel implements Runnable {
 	public void update() {
 		this.jugador.update();
 		this.enemigo.update();
+		for(Proyectil i : listaProjectil){
+			i.update();									//Se actualiza cada instancia de los proyectiles
+		}
 		// En el futuro, aquí se actualizarían enemigos, NPCs, etc.
 	}
 
@@ -114,23 +122,18 @@ public class GamePanel extends JPanel implements Runnable {
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-		// Llama al método original de JPanel para limpiar el panel antes de dibujar.
-		super.paintComponent(g);
-		// Convierte el objeto Graphics a Graphics2D para tener más control y
-		// herramientas avanzadas.
-		Graphics2D g2 = (Graphics2D) g;
 
-		// Dibuja el mapa primero para que sirva de fondo.
-		this.mTi.draw(g2);
+		super.paintComponent(g);																	// Llama al método original de JPanel para limpiar el panel antes de dibujar.
+		Graphics2D g2 = (Graphics2D) g;																// Convierte el objeto Graphics a Graphics2D para tener más control y herramientas avanzadas.
 
-		// Dibuja al jugador después, para que aparezca sobre el mapa.
-		this.jugador.draw(g2);
-		//Dibuja al enemigo despues del jugador y del mapa
-		this.enemigo.draw(g2);
+		this.mTi.draw(g2);																			// Dibuja el mapa primero para que sirva de fondo.
+		this.jugador.draw(g2);																		// Dibuja al jugador después, para que aparezca sobre el mapa.
+		this.enemigo.draw(g2);																		//Dibuja al enemigo despues del jugador y del mapa
+		for(Proyectil i : listaProjectil){
+			i.draw(g2);								//Se dibuja cada instancia de los proyectiles
+		}
 
-		// Libera los recursos del sistema utilizados por el objeto Graphics2D. Es una
-		// buena práctica.
-		g2.dispose();
+		g2.dispose();																				// Libera los recursos del sistema utilizados por el objeto Graphics2D. Es una buena práctica.
 	}
 
 	// --- GETTERS ---
@@ -196,4 +199,10 @@ public class GamePanel extends JPanel implements Runnable {
 	public ManejadorTiles getManejadorTiles() {
 		return this.mTi;
 	}
+
+	/** @return La lista de proyectiles. */
+    public ArrayList<Proyectil> getListaProjectil() {
+        return listaProjectil;
+    }
+
 }
