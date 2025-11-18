@@ -1,5 +1,7 @@
 package main;
 
+import java.awt.Rectangle;
+
 import entidad.Entidad;
 import entidad.Jugador; 
 
@@ -71,5 +73,59 @@ public class DetectorColisiones {
             // Usa el setter de la superclase Entidad.
             entidad.setColisionActivada(true); 
         }
+    }
+    
+    
+    //===============================================================================================
+    /**
+    * Revisa si una entidad colisiona con otra entidad (usando las coordenadas del mundo).
+    * @param entidad1 La primera entidad (ej: proyectil).
+    * @param entidad2 La segunda entidad (ej: enemigo).
+    * @return true si hay colisión, false en caso contrario.
+    */
+    public boolean revisaEntidad(Entidad entidad1, Entidad entidad2) {
+        // 1. Crear Rectangles de colisión en coordenadas del mundo
+        java.awt.Rectangle area1 = new java.awt.Rectangle(
+            entidad1.getMundoX() + entidad1.getAreaSolidaX(),
+            entidad1.getMundoY() + entidad1.getAreaSolidaY(),
+            entidad1.getAreaSolidaAncho(),
+            entidad1.getAreaSolidaAlto()
+        );
+
+        java.awt.Rectangle area2 = new java.awt.Rectangle(
+            entidad2.getMundoX() + entidad2.getAreaSolidaX(),
+            entidad2.getMundoY() + entidad2.getAreaSolidaY(),
+            entidad2.getAreaSolidaAncho(),
+            entidad2.getAreaSolidaAlto()
+        );
+
+        // 2. Verificar si intersectan
+        return area1.intersects(area2);
+    }
+    /**
+    * Revisa si una entidad (ej: Enemigo) colisiona con el Jugador.
+    * @param entidad La entidad que se va a verificar (generalmente el enemigo).
+    * @return true si hay colisión, false en caso contrario.
+    */
+    public boolean revisaJugador(Entidad entidad) {
+        // 1. Obtener el área de colisión del Enemigo en coordenadas del mundo.
+        Rectangle areaEntidad = new Rectangle(
+            entidad.getMundoX() + entidad.getAreaSolidaX(),
+            entidad.getMundoY() + entidad.getAreaSolidaY(),
+            entidad.getAreaSolidaAncho(),
+            entidad.getAreaSolidaAlto()
+        );
+
+        // 2. Obtener el área de colisión del Jugador en coordenadas del mundo.
+        Jugador jugador = gP.getJugador();
+        Rectangle areaJugador = new Rectangle(
+            jugador.getMundoX() + jugador.getAreaSolidaX(),
+            jugador.getMundoY() + jugador.getAreaSolidaY(),
+            jugador.getAreaSolidaAncho(),
+            jugador.getAreaSolidaAlto()
+        );
+
+        // 3. Verificar si intersectan.
+        return areaEntidad.intersects(areaJugador);
     }
 }

@@ -32,6 +32,13 @@ public class Proyectil extends Entidad{
 		//inicializar vida
 		this.maxVida = 10;
 		this.vidaActual = 10;
+		
+		//=============================================
+		this.danio = 1; // DAÑO que inflige el proyectil.
+		// Inicializar hitbox (más pequeño que el tile, centrado)
+		int hitBoxSize = 10;
+		int offset = (gP.getTamanioTile() - hitBoxSize) / 2;
+		this.areaSolida = new Rectangle(offset, offset, hitBoxSize, hitBoxSize);
 	}
 	
 	
@@ -107,10 +114,10 @@ public class Proyectil extends Entidad{
 		
 		sprite = this.arriba1;
 
+		g2.drawImage(sprite, 200, 100, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
 		g2.setColor(Color.YELLOW);
 		g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile());
-		//++++++++++++++ PROBLEMA: No se porque no quiere cargar el sprite. ++++++++++++++
-		//g2.drawImage(sprite, 200, 100, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
+
 		g2.drawString(String.valueOf(gP.getListaProjectil().size()), 100, 100); 					//(Debug)Numero de proyectiles en pantalla
 	}
 	

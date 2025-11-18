@@ -223,6 +223,15 @@ public class Jugador extends Entidad {
 		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
 	}
 
+	//================================================================
+	public void recibeDanio(int danio) {
+	    this.vidaActual -= danio;
+	    if (this.vidaActual < 0) {
+	        this.vidaActual = 0;
+	    }
+	}
+	
+	
 	// --- GETTERS Y SETTERS ---
 	// Proporcionan acceso controlado a las propiedades del jugador.
 

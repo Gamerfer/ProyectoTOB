@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Iterator;
+
 import javax.swing.JPanel;
 
 import entidad.Enemigo;
@@ -109,10 +111,42 @@ public class GamePanel extends JPanel implements Runnable {
 	public void update() {
 		this.jugador.update();
 		this.enemigo.update();
-		for(Proyectil i : listaProjectil){
+		/*for(Proyectil i : listaProjectil){
 			i.update();									//Se actualiza cada instancia de los proyectiles
-		}
+		}*/
 		// En el futuro, aquí se actualizarían enemigos, NPCs, etc.
+		
+		//==========================================================================
+		if (dC.revisaJugador(this.enemigo)) {
+		    // Si hay colisión, el jugador recibe daño del enemigo.
+		    this.jugador.recibeDanio(this.enemigo.getDanio());
+		}
+		
+		
+		// Lógica de colisión Proyectil-Enemigo y remoción de proyectiles.
+		Iterator<Proyectil> iteradorProyectil = listaProjectil.iterator();
+		
+		while (iteradorProyectil.hasNext()) {
+			
+		    Proyectil proyectilActual = iteradorProyectil.next();
+		    proyectilActual.update();
+
+		    // 1. Revisar colisión del proyectil con el enemigo
+		    if (dC.revisaEntidad(proyectilActual, this.enemigo)) {
+		    	
+		        // Colisión detectada: el proyectil golpeó al enemigo.
+		        this.enemigo.recibeDanio(proyectilActual.getDanio());
+		        iteradorProyectil.remove(); // Eliminar el proyectil inmediatamente.
+
+		        // 2. Revisar si el enemigo muere después del ataque
+		        if (this.enemigo.getVidaActual() <= 0) {
+		            this.enemigo.setPosicionAleatoria(); // Reaparecer el enemigo.
+		            this.enemigo.setVidaActual(this.enemigo.getMaxVida()); // Reiniciar vida.
+		        }
+		    }
+		}
+		//======================================================================================
+		
 	}
 
 	/**

@@ -16,6 +16,7 @@ public class Entidad {
     // --- VARIABLES DE SALUD (NUEVAS) ---
     protected int maxVida;
     protected int vidaActual;
+    protected int danio;
     
     // Sprites y animación [5, 6]
     protected BufferedImage arriba1, arriba2, abajo1, abajo2, izquierda1, izquierda2, derecha1, derecha2;
@@ -82,8 +83,16 @@ public class Entidad {
         return this.vidaActual;
     }
     
+    public void setVidaActual(int vida) {
+    	this.vidaActual = vida;
+    }
+    
     // Setter existente [7]
     public void setColisionActivada(boolean valor) {
         this.colisionActivada = valor;
+    }
+    
+    public int getDanio() {
+    	return danio;
     }
 }

@@ -45,6 +45,7 @@ public class Enemigo extends Entidad {
         //vida del enemigo
         this.maxVida = 3;
         this.vidaActual = 3;
+        this.danio = 1;
     }
     public void setPosicionAleatoria() {
         // 1. Obtiene las dimensiones máximas del mundo en número de tiles
@@ -132,6 +133,13 @@ public class Enemigo extends Entidad {
             }
         }
     }
+    
+    
+    //=====================================================================
+    public void recibeDanio(int danio) {
+        this.vidaActual -= danio;
+    }
+    //===============================================
 
     /**
      * Dibuja el enemigo en la pantalla como un rectángulo rojo.
