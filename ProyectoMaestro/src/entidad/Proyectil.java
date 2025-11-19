@@ -96,27 +96,27 @@ public class Proyectil extends Entidad{
 		int pantallaY = this.mundoY - gP.getJugador().getMundoY() + gP.getJugador().getPantallaY();
 
 		// Selecciona el sprite correcto basado en la dirección y el número de sprite actual.
-		switch (this.direccion) {
-			case "arriba":
-				// Usa el operador ternario para elegir entre el sprite 1 y 2 de "arriba".
-				sprite = (this.numeroSprites == 1) ? this.arriba1 : this.arriba2;
-				break;
-			case "abajo":
-				sprite = (this.numeroSprites == 1) ? this.abajo1 : this.abajo2;
-				break;
-			case "izquierda":
-				sprite = (this.numeroSprites == 1) ? this.izquierda1 : this.izquierda2;
-				break;
-			case "derecha":
-				sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2;
-				break;
-		}
+//		switch (this.direccion) {
+//			case "arriba":
+//				// Usa el operador ternario para elegir entre el sprite 1 y 2 de "arriba".
+//				sprite = (this.numeroSprites == 1) ? this.arriba1 : this.arriba2;
+//				break;
+//			case "abajo":
+//				sprite = (this.numeroSprites == 1) ? this.abajo1 : this.abajo2;
+//				break;
+//			case "izquierda":
+//				sprite = (this.numeroSprites == 1) ? this.izquierda1 : this.izquierda2;
+//				break;
+//			case "derecha":
+//				sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2;
+//				break;
+//		}
 		
 		sprite = this.arriba1;
 
-		g2.drawImage(sprite, 200, 100, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
-		g2.setColor(Color.YELLOW);
-		g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile());
+		g2.drawImage(sprite, pantallaX, pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
+		//g2.setColor(Color.YELLOW);
+		//g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile());
 
 		g2.drawString(String.valueOf(gP.getListaProjectil().size()), 100, 100); 					//(Debug)Numero de proyectiles en pantalla
 	}
