@@ -4,7 +4,7 @@ import javax.swing.JFrame;
 
 //Adios
 //cómo están
-
+//BIEN BIEN
 /**
  * @author Los Ratones
  * @version 0.5
