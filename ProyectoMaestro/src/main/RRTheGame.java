@@ -3,6 +3,7 @@ package main;
 import javax.swing.JFrame;
 
 //Adios
+//cómo están
 
 /**
  * @author Los Ratones
