@@ -30,7 +30,7 @@ public class Jugador extends Entidad {
 	private long tInicio = 0;
 	private long tiempo = 0;
 	private int rango;
-	private int velDisparo;
+	private int retDisparo;
 
 	/* --- COORDENADAS EN PANTALLA ---
 	// Coordenadas FINALES y FIJAS del jugador en la PANTALLA.
@@ -61,8 +61,8 @@ public class Jugador extends Entidad {
 		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
 		this.velocidad = 4;							// Velocidad de movimiento del jugador en píxeles por fotograma.
 		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
-		this.rango = 5;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
-		this.velDisparo = 20;						// Que tan rapido dispara el jugador
+		this.rango = 75;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
+		this.retDisparo = 10;						// Es el retardo del disparo
 		
 		//inicializar vida
 		this.maxVida = 10;
@@ -83,6 +83,7 @@ public class Jugador extends Entidad {
 			this.izquierda2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda2.png"));
 			this.derecha1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha1.png"));
 			this.derecha2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha2.png"));
+			this.neutro = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/neutral.png"));
 		} catch (IOException e) {
 			// Si ocurre un error al cargar las imágenes (ej: archivo no encontrado), se imprime el error.
 			e.printStackTrace();
@@ -151,19 +152,27 @@ public class Jugador extends Entidad {
 				this.contadorSprites = 0;
 			}
 		}
+
 		
 		if(tiempo < 200)																						//Cuenta el tiempo mientras no se pase de 200 (200 para que no sume para siempre)
 			tiempo++;
 		
-		if (mT.getDisparo() && tiempo > velDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
+		if (mT.getDisparo() && tiempo > retDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
 			tInicio = System.currentTimeMillis();																//Se marca el tiempo en el que se añadio el nuevo proyectil
 			gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));										//Se añade una nueva instancia de un proyectil a la lista de gamePanel
 			tiempo = 0;																							//resetea el tiempo para disparar otra vez
 		}
-		if(gP.getListaProjectil().size() > 0 && System.currentTimeMillis() - tInicio > 500) {
-			gP.getListaProjectil().removeFirst();																//Remueve los proyectiles una vez pasen 500 milisegundos
-			tInicio = 0;																						//Se reinicia el tiempo para cuando desaparescan
-		}
+		
+		//Si la lista no esta vacia, revisa si es que el timer no es mayor que el rango de tiempo para que el proyectil desaparezca
+		if(!gP.getListaProjectil().isEmpty())
+			for(int i=0; i<gP.getListaProjectil().size(); i++)
+				if(gP.getListaProjectil().get(i).getTimer() > rango)
+					gP.getListaProjectil().remove(i);
+		
+//		if(!gP.getListaProjectil().isEmpty() && System.currentTimeMillis() - tInicio > 500) {
+//			gP.getListaProjectil().removeFirst();																//Remueve los proyectiles una vez pasen 500 milisegundos
+//			tInicio = 0;																						//Se reinicia el tiempo para cuando desaparescan
+//		}
 		//+++++++PROBLEMA: se reinicia el tiempo para cada proyectil cada vez que se dispara!!!++++++++++
 		
 		

@@ -12,6 +12,7 @@ import main.ManejadorTeclas;
 public class Proyectil extends Entidad{
 	private ManejadorTeclas mT;
 	private GamePanel gP;
+	private int timer = 0;
 
 
 	public Proyectil(GamePanel gP, ManejadorTeclas mT) {
@@ -19,7 +20,7 @@ public class Proyectil extends Entidad{
 		this.mT = mT;
 		
 		configuracionInicial();
-
+		getSpritesProyectil();
 	}
 	
 	public void configuracionInicial() {
@@ -44,6 +45,7 @@ public class Proyectil extends Entidad{
 	
 	public void getSpritesProyectil() {
 		try {
+
 			// getClass().getResourceAsStream() es la forma estándar de acceder a recursos dentro del proyecto.
 			// Carga sprite para el movimiento
 			this.arriba1 = ImageIO.read(getClass().getResourceAsStream("/spritesproyectil/proyectil.png"));
@@ -67,6 +69,7 @@ public class Proyectil extends Entidad{
 			case "arriba":
 				this.setMundoY(this.getMundoY() - this.getVelocidad());
 				break;
+			case "neutro":
 			case "abajo":
 				this.setMundoY(this.getMundoY() + this.getVelocidad());
 				break;
@@ -87,6 +90,11 @@ public class Proyectil extends Entidad{
 			else {this.numeroSprites = 1;}
 			this.contadorSprites = 0;
 		}
+
+		timer++;	//Toma el tiempo de existencia del proyectil
+			
+			
+		
 	}
 
 	public void draw(Graphics2D g2) {
@@ -111,7 +119,8 @@ public class Proyectil extends Entidad{
 //				sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2;
 //				break;
 //		}
-		
+
+	
 		sprite = this.arriba1;
 
 		g2.drawImage(sprite, pantallaX, pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
@@ -140,5 +149,9 @@ public class Proyectil extends Entidad{
 	/** @param valor La nueva coordenada Y del jugador en el mundo. */
 	public void setMundoY(int valor) {
 		this.mundoY = valor;
+	}
+	
+	public int getTimer() {
+		return this.timer;
 	}
 }
