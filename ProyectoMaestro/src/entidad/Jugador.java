@@ -169,14 +169,6 @@ public class Jugador extends Entidad {
 				if(gP.getListaProjectil().get(i).getTimer() > rango)
 					gP.getListaProjectil().remove(i);
 		
-//		if(!gP.getListaProjectil().isEmpty() && System.currentTimeMillis() - tInicio > 500) {
-//			gP.getListaProjectil().removeFirst();																//Remueve los proyectiles una vez pasen 500 milisegundos
-//			tInicio = 0;																						//Se reinicia el tiempo para cuando desaparescan
-//		}
-		//+++++++PROBLEMA: se reinicia el tiempo para cada proyectil cada vez que se dispara!!!++++++++++
-		
-		
-
 	}
 
 	/**
