@@ -56,8 +56,7 @@ public class GamePanel extends JPanel implements Runnable {
 	private final ManejadorTeclas mT = new ManejadorTeclas();
 	private final DetectorColisiones dC = new DetectorColisiones(this);
 	private final Jugador jugador = new Jugador(this, this.mT);
-	private final Enemigo enemigo = new Enemigo(this);
-	private final ArrayList<Proyectil> listaProjectil= new ArrayList<Proyectil>();		// Lista de proyectiles creados por el jugador
+	private final ArrayList<Enemigo> listaEnemigos = new ArrayList<Enemigo>();	private final ArrayList<Proyectil> listaProjectil= new ArrayList<Proyectil>();		// Lista de proyectiles creados por el jugador
 	private final ManejadorTiles mTi = new ManejadorTiles(this); 				//gestiona el mapa.
 
 	/**
@@ -70,9 +69,17 @@ public class GamePanel extends JPanel implements Runnable {
 		this.addKeyListener(mT);													// Añade el manejador de teclas como "oyente" de eventos
 		this.setFocusable(true);													// Permite que el panel reciba el "foco" del sistema para poder capturar teclas.
 	}
+	public void configuraEnemigos() {
+	    final int NUM_ENEMIGOS_INICIALES = 10; // Puedes cambiar este número para ajustar la cantidad de enemigos
+
+	    for (int i = 0; i < NUM_ENEMIGOS_INICIALES; i++) {
+	        listaEnemigos.add(new Enemigo(this));
+	    }
+	}
 
 
 	public void iniciaHebraJuego() {
+		this.configuraEnemigos();
 		this.hebraJuego = new Thread(this);
 		this.hebraJuego.start();
 	}
@@ -90,7 +97,7 @@ public class GamePanel extends JPanel implements Runnable {
 		long tiempoActual;
 
 																					// Bucle principal que se ejecuta mientras el hilo del juego exista (no sea null).
-		while (this.hebraJuego != null) {
+		while (this.hebraJuego != null && jugador.getVidaActual()!=0) {
 			tiempoActual = System.nanoTime();
 			delta += (tiempoActual - ultimaVez) / intervaloDibujo;					// Acumula la proporción de tiempo transcurrido respecto al intervalo de dibujo.
 			ultimaVez = tiempoActual;												// Actualiza 'ultimaVez' para el próximo ciclo.
@@ -109,44 +116,60 @@ public class GamePanel extends JPanel implements Runnable {
 	 * cada fotograma desde el bucle del juego.
 	 */
 	public void update() {
-		this.jugador.update();
-		this.enemigo.update();
-		/*for(Proyectil i : listaProjectil){
-			i.update();									//Se actualiza cada instancia de los proyectiles
-		}*/
-		// En el futuro, aquí se actualizarían enemigos, NPCs, etc.
-		
-		//==========================================================================
-		if (dC.revisaJugador(this.enemigo)) {
-		    // Si hay colisión, el jugador recibe daño del enemigo.
-		    this.jugador.recibeDanio(this.enemigo.getDanio());
-		}
-		
-		
-		// Lógica de colisión Proyectil-Enemigo y remoción de proyectiles.
-		Iterator<Proyectil> iteradorProyectil = listaProjectil.iterator();
-		
-		while (iteradorProyectil.hasNext()) {
-			
-		    Proyectil proyectilActual = iteradorProyectil.next();
-		    proyectilActual.update();
+	    this.jugador.update();
+	    
+	    // 1. ACTUALIZAR ENEMIGOS
+	    // Usa un iterador si planeas eliminar enemigos más adelante por otras razones
+	    for (Enemigo e : listaEnemigos) {
+	        e.update(); // Llama a la lógica de movimiento/IA para CADA enemigo
+	        
+	        
+	        // Revisar colisión de CADA enemigo con el jugador
+	        if (dC.revisaJugador(e)) {
+	            // Si hay colisión, el jugador recibe daño de ESTE enemigo.
+	            this.jugador.recibeDanio(e.getDanio());
+	        }
+	    }
 
-		    // 1. Revisar colisión del proyectil con el enemigo
-		    if (dC.revisaEntidad(proyectilActual, this.enemigo)) {
-		    	
-		        // Colisión detectada: el proyectil golpeó al enemigo.
-		        this.enemigo.recibeDanio(proyectilActual.getDanio());
-		        iteradorProyectil.remove(); // Eliminar el proyectil inmediatamente.
+	    // 2. LÓGICA DE PROYECTIL (Colisión proyectil-enemigos)
+	    Iterator<Proyectil> iteradorProyectil = listaProjectil.iterator();
+	    while (iteradorProyectil.hasNext()) {
+	        Proyectil proyectilActual = iteradorProyectil.next();
+	        proyectilActual.update();
+	        
+	        // Bucle ANIDADO para revisar el proyectil contra CADA enemigo
+	        Iterator<Enemigo> iteradorEnemigo = listaEnemigos.iterator();
+	        boolean proyectilGolpeo = false;
 
-		        // 2. Revisar si el enemigo muere después del ataque
-		        if (this.enemigo.getVidaActual() <= 0) {
-		            this.enemigo.setPosicionAleatoria(); // Reaparecer el enemigo.
-		            this.enemigo.setVidaActual(this.enemigo.getMaxVida()); // Reiniciar vida.
-		        }
-		    }
-		}
-		//======================================================================================
-		
+	        while (iteradorEnemigo.hasNext()) {
+	            Enemigo enemigoActual = iteradorEnemigo.next();
+
+	            if (dC.revisaEntidad(proyectilActual, enemigoActual)) {
+	                // Colisión detectada: el proyectil golpeó a ESTE enemigo.
+	                enemigoActual.recibeDanio(proyectilActual.getDanio());
+	                proyectilGolpeo = true; // Marca que el proyectil golpeó algo
+	                
+	                // Revisar si el enemigo muere después del ataque
+	             // Dentro del bucle anidado del update()
+	                if (enemigoActual.getVidaActual() <= 0) {
+	                    // Si el enemigo muere, NO LO ELIMINAMOS de la lista. 
+	                    // En su lugar, reiniciamos sus valores para simular una reaparición (re-spawn).
+	                    
+	                    enemigoActual.setPosicionAleatoria(); 
+	                    enemigoActual.setVidaActual(enemigoActual.getMaxVida()); 
+	                    // Asumo que tienes estos métodos en la clase Enemigo.
+	                    
+	                    // NOTA: Si usas la reaparición, no uses iteradorEnemigo.remove();
+	                }
+	                // Si el proyectil solo puede golpear un objetivo, puedes hacer 'break;' aquí
+	            }
+	        }
+	        
+	        // Si el proyectil golpeó a algún enemigo, lo removemos de la lista de proyectiles
+	        if (proyectilGolpeo || proyectilActual.getVidaActual() <= 0) { // Asumiendo que el proyectil también tiene un tiempo de vida (vida <= 0)
+	             iteradorProyectil.remove(); 
+	        }
+	    }
 	}
 
 	/**
@@ -157,17 +180,23 @@ public class GamePanel extends JPanel implements Runnable {
 	@Override
 	public void paintComponent(Graphics g) {
 
-		super.paintComponent(g);																	// Llama al método original de JPanel para limpiar el panel antes de dibujar.
-		Graphics2D g2 = (Graphics2D) g;																// Convierte el objeto Graphics a Graphics2D para tener más control y herramientas avanzadas.
+	    super.paintComponent(g);
+	    Graphics2D g2 = (Graphics2D) g;
 
-		this.mTi.draw(g2);																			// Dibuja el mapa primero para que sirva de fondo.
-		this.jugador.draw(g2);																		// Dibuja al jugador después, para que aparezca sobre el mapa.
-		this.enemigo.draw(g2);																		//Dibuja al enemigo despues del jugador y del mapa
-		for(Proyectil i : listaProjectil){
-			i.draw(g2);								//Se dibuja cada instancia de los proyectiles
-		}
+	    this.mTi.draw(g2);
+	    this.jugador.draw(g2);
 
-		g2.dispose();																				// Libera los recursos del sistema utilizados por el objeto Graphics2D. Es una buena práctica.
+	    // 1. DIBUJAR CADA ENEMIGO DE LA LISTA
+	    for (Enemigo e : listaEnemigos) {
+	        e.draw(g2); // Llama al método de dibujo para CADA enemigo
+	    }
+
+	    // 2. DIBUJAR CADA PROYECTIL DE LA LISTA
+	    for(Proyectil i : listaProjectil){
+	        i.draw(g2);
+	    }
+
+	    g2.dispose();
 	}
 
 	// --- GETTERS ---
