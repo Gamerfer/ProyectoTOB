@@ -3,7 +3,8 @@ package main;
 import javax.swing.JFrame;
 
 //Adios
-
+//cómo están
+//BIEN BIEN
 /**
  * @author Los Ratones
  * @version 0.5
@@ -50,4 +51,5 @@ public class RRTheGame {
 		// 6. Iniciar el hilo de ejecución del juego.
 		panelJuego.iniciaHebraJuego();
 	}
+	//jair
 }
