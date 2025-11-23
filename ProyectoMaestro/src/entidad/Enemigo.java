@@ -26,7 +26,7 @@ public class Enemigo extends Entidad {
         
         // Define la hitbox. Se utilizan las mismas dimensiones que el Jugador [5].
         // x=8, y=16, ancho=32, alto=32, relativo al tile.
-        this.areaSolida = new Rectangle(8, 16, 32, 32); 
+        
         
         this.configuracionInicial();
     }
@@ -43,9 +43,16 @@ public class Enemigo extends Entidad {
         this.direccion = "abajo"; 
         
         //vida del enemigo
-        this.maxVida = 3;
-        this.vidaActual = 3;
+        this.maxVida = 10;
+        this.vidaActual = this.maxVida;
         this.danio = 1;
+        
+        //colisiones
+        this.hitbox = 48;
+		this.offset = (gP.getTamanioTile() - hitbox) / 2;
+		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
+        //this.areaSolida = new Rectangle(8, 16, 32, 32); 
+        
     }
     public void setPosicionAleatoria() {
         // 1. Obtiene las dimensiones máximas del mundo en número de tiles
@@ -174,5 +181,9 @@ public class Enemigo extends Entidad {
         // 4. Dibuja el rectángulo del enemigo (tal como estaba antes).
         g2.setColor(Color.RED); 
         g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile()); 
+        
+        //hitbox
+        g2.setColor(Color.BLUE); 
+        g2.fillRect(pantallaX, pantallaY, hitbox, hitbox); 
     }
 }

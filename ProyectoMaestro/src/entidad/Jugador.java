@@ -21,7 +21,6 @@ import main.ManejadorTeclas;
  */
 public class Jugador extends Entidad {
 
-	private ArrayList<Proyectil> proyectil = new ArrayList<Proyectil>();
 	// --- REFERENCIAS A COMPONENTES PRINCIPALES ---
 	private final GamePanel gP;
 	private final ManejadorTeclas mT;
@@ -46,8 +45,7 @@ public class Jugador extends Entidad {
 		// Se resta la mitad del tamaño del mosaico para que el CENTRO del jugador quede en el centro de la pantalla.
 		this.pantallaX = gP.getAnchoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición X central en la pantalla.
 		this.pantallaY = gP.getAltoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición Y central en la pantalla.
-		this.areaSolida = new Rectangle(8, 16, 32, 32);								// Define el área sólida (hitbox) del jugador. new Rectangle(x, y, ancho, alto) relativo a la esquina superior izquierda del sprite.
-
+		
 		// Llama a los métodos para establecer los valores iniciales y cargar los gráficos.
 		this.configuracionInicial(); 												// Establece la posición, velocidad, etc.
 		this.getSpritesJugador(); 													// Carga las imágenes del personaje.
@@ -67,6 +65,12 @@ public class Jugador extends Entidad {
 		//inicializar vida
 		this.maxVida = 10;
 		this.vidaActual = 10;
+		
+		//Area de colision
+		hitbox = 32; 																// Tamaño de la area de colision
+		this.offset = (gP.getTamanioTile() - hitbox) / 2; 							// Compensacion de la posición de la hitbox para que este en el centro
+		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);								// Define el área sólida (hitbox) del jugador. new Rectangle(x, y, ancho, alto) relativo a la esquina superior izquierda del sprite.
+
 	}
 
 
@@ -218,10 +222,15 @@ public class Jugador extends Entidad {
 
 		// Dibuja el sprite seleccionado en las coordenadas FIJAS de la pantalla.
 		// El jugador siempre está en el centro; el mapa se mueve a su alrededor.
-		g2.drawString(String.valueOf(System.currentTimeMillis()), 200, 100);						//(Debug) Tiempo de ejecucion
-		g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
+		//g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
 		g2.drawString(String.valueOf(tiempo), 200, 140);
 		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
+		
+		/*
+		//hitbox
+		g2.setColor(Color.RED);
+	    g2.fillRect(this.pantallaX + this.offset, this.pantallaY + this.offset, hitbox, hitbox);
+	    */
 	}
 
 	//================================================================

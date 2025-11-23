@@ -84,22 +84,23 @@ public class DetectorColisiones {
     * @return true si hay colisión, false en caso contrario.
     */
     public boolean revisaEntidad(Entidad entidad1, Entidad entidad2) {
-        // 1. Crear Rectangles de colisión en coordenadas del mundo
+        // Crear Rectangles de colisión en coordenadas del mundo
         java.awt.Rectangle area1 = new java.awt.Rectangle(
-            entidad1.getMundoX() + entidad1.getAreaSolidaX(),
-            entidad1.getMundoY() + entidad1.getAreaSolidaY(),
+            entidad1.getMundoX(),
+            entidad1.getMundoY(),
             entidad1.getAreaSolidaAncho(),
             entidad1.getAreaSolidaAlto()
         );
+        
 
         java.awt.Rectangle area2 = new java.awt.Rectangle(
-            entidad2.getMundoX() + entidad2.getAreaSolidaX(),
-            entidad2.getMundoY() + entidad2.getAreaSolidaY(),
+            entidad2.getMundoX(),
+            entidad2.getMundoY(),
             entidad2.getAreaSolidaAncho(),
             entidad2.getAreaSolidaAlto()
         );
 
-        // 2. Verificar si intersectan
+        // Verificar si intersectan
         return area1.intersects(area2);
     }
     /**

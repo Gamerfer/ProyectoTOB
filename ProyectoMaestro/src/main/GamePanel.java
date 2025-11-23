@@ -118,21 +118,16 @@ public class GamePanel extends JPanel implements Runnable {
 	public void update() {
 	    this.jugador.update();
 	    
-	    // 1. ACTUALIZAR ENEMIGOS
-	    // Usa un iterador si planeas eliminar enemigos más adelante por otras razones
-	    for (Enemigo e : listaEnemigos) {
-	        e.update(); // Llama a la lógica de movimiento/IA para CADA enemigo
-	        
-	        
-	        // Revisar colisión de CADA enemigo con el jugador
-	        if (dC.revisaJugador(e)) {
-	            // Si hay colisión, el jugador recibe daño de ESTE enemigo.
-	            this.jugador.recibeDanio(e.getDanio());
-	        }
+	    //ACTUALIZAR ENEMIGOS
+	    for (Enemigo e : listaEnemigos) {										// Usa un iterador si planeas eliminar enemigos más adelante por otras razones
+	        	e.update(); 														// Llama a la lógica de movimiento/IA para CADA enemigo
+	        	if (dC.revisaJugador(e))	        							// Revisar colisión de CADA enemigo con el jugador
+	        		this.jugador.recibeDanio(e.getDanio());	            // Si hay colisión, el jugador recibe daño de ESTE enemigo.
 	    }
 
 	    // 2. LÓGICA DE PROYECTIL (Colisión proyectil-enemigos)
 	    Iterator<Proyectil> iteradorProyectil = listaProjectil.iterator();
+	    
 	    while (iteradorProyectil.hasNext()) {
 	        Proyectil proyectilActual = iteradorProyectil.next();
 	        proyectilActual.update();
@@ -150,16 +145,10 @@ public class GamePanel extends JPanel implements Runnable {
 	                proyectilGolpeo = true; // Marca que el proyectil golpeó algo
 	                
 	                // Revisar si el enemigo muere después del ataque
-	             // Dentro del bucle anidado del update()
 	                if (enemigoActual.getVidaActual() <= 0) {
-	                    // Si el enemigo muere, NO LO ELIMINAMOS de la lista. 
-	                    // En su lugar, reiniciamos sus valores para simular una reaparición (re-spawn).
-	                    
+	                    // Si el enemigo muere, reiniciamos sus valores para simular una reaparición (re-spawn).
 	                    enemigoActual.setPosicionAleatoria(); 
 	                    enemigoActual.setVidaActual(enemigoActual.getMaxVida()); 
-	                    // Asumo que tienes estos métodos en la clase Enemigo.
-	                    
-	                    // NOTA: Si usas la reaparición, no uses iteradorEnemigo.remove();
 	                }
 	                // Si el proyectil solo puede golpear un objetivo, puedes hacer 'break;' aquí
 	            }
@@ -182,19 +171,17 @@ public class GamePanel extends JPanel implements Runnable {
 
 	    super.paintComponent(g);
 	    Graphics2D g2 = (Graphics2D) g;
-
+	    
 	    this.mTi.draw(g2);
 	    this.jugador.draw(g2);
 
-	    // 1. DIBUJAR CADA ENEMIGO DE LA LISTA
-	    for (Enemigo e : listaEnemigos) {
+	    //DIBUJAR CADA ENEMIGO DE LA LISTA
+	    for (Enemigo e : listaEnemigos) 
 	        e.draw(g2); // Llama al método de dibujo para CADA enemigo
-	    }
-
-	    // 2. DIBUJAR CADA PROYECTIL DE LA LISTA
-	    for(Proyectil i : listaProjectil){
+	    
+	    //DIBUJAR CADA PROYECTIL DE LA LISTA
+	    for(Proyectil i : listaProjectil)
 	        i.draw(g2);
-	    }
 
 	    g2.dispose();
 	}

@@ -28,6 +28,8 @@ public class Entidad {
     // Colisión [6, 7]
     protected Rectangle areaSolida;
     protected boolean colisionActivada = false;
+    protected int hitbox;
+    protected int offset;
 
     // --- MÉTODOS BASE (Placeholders necesarios para sobrescribir) ---
     

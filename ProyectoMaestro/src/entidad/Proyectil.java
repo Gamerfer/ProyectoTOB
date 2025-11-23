@@ -25,10 +25,7 @@ public class Proyectil extends Entidad{
 	
 	public void configuracionInicial() {
 
-		this.mundoX = gP.getJugador().getMundoX();		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
-		this.mundoY = gP.getJugador().getMundoY();		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
-		this.velocidad = 7;								// Velocidad de movimiento del jugador en píxeles por fotograma.
-		this.direccion = gP.getJugador().getDireccion();					// Dirección inicial a la que mira el jugador.
+
 		
 		//inicializar vida
 		this.maxVida = 10;
@@ -37,9 +34,14 @@ public class Proyectil extends Entidad{
 		//=============================================
 		this.danio = 1; // DAÑO que inflige el proyectil.
 		// Inicializar hitbox (más pequeño que el tile, centrado)
-		int hitBoxSize = 10;
-		int offset = (gP.getTamanioTile() - hitBoxSize) / 2;
-		this.areaSolida = new Rectangle(offset, offset, hitBoxSize, hitBoxSize);
+		this.hitbox = 16;
+		this.offset = (gP.getTamanioTile() - hitbox) / 2;
+		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
+		
+		this.mundoX = gP.getJugador().getMundoX() + this.offset;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
+		this.mundoY = gP.getJugador().getMundoY() + this.offset;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
+		this.velocidad = 7;								// Velocidad de movimiento del jugador en píxeles por fotograma.
+		this.direccion = gP.getJugador().getDireccion();					// Dirección inicial a la que mira el jugador.
 	}
 	
 	
@@ -123,11 +125,15 @@ public class Proyectil extends Entidad{
 	
 		sprite = this.arriba1;
 
-		g2.drawImage(sprite, pantallaX, pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null);
-		//g2.setColor(Color.YELLOW);
-		//g2.fillRect(pantallaX, pantallaY, gP.getTamanioTile(), gP.getTamanioTile());
 
-		g2.drawString(String.valueOf(gP.getListaProjectil().size()), 100, 100); 					//(Debug)Numero de proyectiles en pantalla
+		
+		g2.drawImage(sprite, pantallaX, pantallaY, this.gP.getTamanioTile()/3, this.gP.getTamanioTile()/3, null);
+		
+		//hitbox
+		g2.setColor(Color.YELLOW);
+		//g2.fillRect(pantallaX, pantallaY, hitbox, hitbox);
+
+		g2.drawString(String.valueOf(getAreaSolidaAlto()), 100, 100); 					//(Debug)Numero de proyectiles en pantalla
 	}
 	
 	
