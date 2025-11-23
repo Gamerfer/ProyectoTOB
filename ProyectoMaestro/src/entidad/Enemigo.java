@@ -23,17 +23,11 @@ public class Enemigo extends Entidad {
     public Enemigo(GamePanel gP) {
         // Asigna la referencia del GamePanel principal.
         this.gP = gP;
-        
-        // Define la hitbox. Se utilizan las mismas dimensiones que el Jugador [5].
-        // x=8, y=16, ancho=32, alto=32, relativo al tile.
-        
-        
         this.configuracionInicial();
     }
 
-    /**
-     * Establece los valores iniciales del enemigo (posición y velocidad).
-     */
+
+    //Establece los valores iniciales del enemigo (posición y velocidad).
     public void configuracionInicial() {
         // Posición inicial del enemigo en el mapa del MUNDO (ajustar según tu mapa).
         this.setPosicionAleatoria();
@@ -51,7 +45,6 @@ public class Enemigo extends Entidad {
         this.hitbox = 48;
 		this.offset = (gP.getTamanioTile() - hitbox) / 2;
 		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
-        //this.areaSolida = new Rectangle(8, 16, 32, 32); 
         
     }
     public void setPosicionAleatoria() {
@@ -59,17 +52,18 @@ public class Enemigo extends Entidad {
         int colMax = gP.getMaxColMundo(); // Máximo de columnas en el mundo [1]
         int renMax = gP.getMaxRenMundo(); // Máximo de filas en el mundo [1]
         int tamanioTile = gP.getTamanioTile(); // Tamaño de cada tile en píxeles [2]
+        int colAleatoria;
+        int renAleatorio;
 
-        // 2. Genera un índice de columna y fila aleatorio.
-        int colAleatoria = random.nextInt(colMax);
-        int renAleatorio = random.nextInt(renMax);
+        do {
+            // 2. Genera un índice de columna y fila aleatorio.
+            colAleatoria = random.nextInt(colMax);
+            renAleatorio = random.nextInt(renMax);
 
-        // 3. Convierte los índices de tile a coordenadas de píxel en el mundo.
-        this.mundoX = colAleatoria * tamanioTile; // Coordenada X del mundo
-        this.mundoY = renAleatorio * tamanioTile; // Coordenada Y del mundo
-        
-        // NOTA: Para una implementación más robusta, aquí se debería verificar
-        // que el tile (colAleatoria, renAleatorio) no tenga colisión.
+            // 3. Convierte los índices de tile a coordenadas de píxel en el mundo.
+            this.mundoX = colAleatoria * tamanioTile; // Coordenada X del mundo
+            this.mundoY = renAleatorio * tamanioTile; // Coordenada Y del mundo
+        } while(  gP.getManejadorTiles().getColisionDeTile( gP.getManejadorTiles().getCodigoMapaTiles(colAleatoria, renAleatorio) )  );
     }
 
     /**

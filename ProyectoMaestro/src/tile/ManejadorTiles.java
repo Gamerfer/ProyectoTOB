@@ -246,4 +246,8 @@ public class ManejadorTiles {
 		// Devuelve la propiedad de colisión del mosaico correspondiente al índice.
 		return this.arregloTiles[index].getColision();
 	}
+	
+	public int[][] getMapaTiles() {
+		return this.codigosMapaTiles;
+	}
 }

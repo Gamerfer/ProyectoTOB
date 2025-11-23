@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import main.GamePanel;
@@ -25,8 +24,6 @@ public class Jugador extends Entidad {
 	private final GamePanel gP;
 	private final ManejadorTeclas mT;
 
-
-	private long tInicio = 0;
 	private long tiempo = 0;
 	private int rango;
 	private int retDisparo;
@@ -49,6 +46,7 @@ public class Jugador extends Entidad {
 		// Llama a los métodos para establecer los valores iniciales y cargar los gráficos.
 		this.configuracionInicial(); 												// Establece la posición, velocidad, etc.
 		this.getSpritesJugador(); 													// Carga las imágenes del personaje.
+		
 	}
 
 
@@ -64,7 +62,7 @@ public class Jugador extends Entidad {
 		
 		//inicializar vida
 		this.maxVida = 10;
-		this.vidaActual = 10;
+		this.vidaActual = maxVida;
 		
 		//Area de colision
 		hitbox = 32; 																// Tamaño de la area de colision
@@ -158,11 +156,10 @@ public class Jugador extends Entidad {
 		}
 
 		
-		if(tiempo < 200)																						//Cuenta el tiempo mientras no se pase de 200 (200 para que no sume para siempre)
+		if(tiempo < retDisparo+1)																						//Cuenta el tiempo mientras no se pase de 200 (200 para que no sume para siempre)
 			tiempo++;
 		
 		if (mT.getDisparo() && tiempo > retDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
-			tInicio = System.currentTimeMillis();																//Se marca el tiempo en el que se añadio el nuevo proyectil
 			gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));										//Se añade una nueva instancia de un proyectil a la lista de gamePanel
 			tiempo = 0;																							//resetea el tiempo para disparar otra vez
 		}
@@ -224,14 +221,49 @@ public class Jugador extends Entidad {
 		// El jugador siempre está en el centro; el mapa se mueve a su alrededor.
 		//g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
 		g2.drawString(String.valueOf(tiempo), 200, 140);
+	    //debugPos(g2);
+		
+		
+		
 		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
 		
 		/*
 		//hitbox
 		g2.setColor(Color.RED);
 	    g2.fillRect(this.pantallaX + this.offset, this.pantallaY + this.offset, hitbox, hitbox);
-	    */
+	    */	
 	}
+	
+	
+	//Metodo para mostrar datos de posicion en pantalla
+	public void debugPos(Graphics2D g2)
+	{
+		int[][] coords = gP.getManejadorTiles().getMapaTiles();
+		
+		//Muestra X y tambien su version convertida en tiles
+		g2.drawString(String.valueOf(this.mundoX), 80, 100);
+		g2.drawString(String.valueOf(this.mundoX/gP.getTamanioTile()), 100, 110);
+		
+		//Muestra Y y tambien su version convertida en tiles
+		g2.drawString(String.valueOf(this.mundoY), 80, 140);
+		g2.drawString(String.valueOf(this.mundoY/gP.getTamanioTile()), 100, 150);
+		
+		//Muestra la posicion del jugador en el mapa
+		for(int i = 0; i < coords.length; i++)
+			for(int j = 0; j < coords.length; j++) {
+				if(i == this.mundoX/gP.getTamanioTile() && j == this.mundoY/gP.getTamanioTile())
+					g2.setColor(Color.RED);
+				else
+					g2.setColor(Color.GREEN);
+				g2.drawString(String.valueOf(coords[j][i]), 300 + 10*i, 100 + 10*j);
+			}
+				
+		//Muestra en que numero de tile esta posicionado el jugador
+		g2.drawString(String.valueOf(coords[this.mundoY/gP.getTamanioTile()][this.mundoX/gP.getTamanioTile()]), 100, 180);
+		
+		//gP.getManejadorTiles().getCodigoMapaTiles(this.mundoY/gP.getTamanioTile(), this.mundoX/gP.getTamanioTile())
+	}
+	
 
 	//================================================================
 	public void recibeDanio(int danio) {
@@ -256,6 +288,7 @@ public class Jugador extends Entidad {
 	}
 
 	/** @return La coordenada Y del jugador en el mundo. */
+	
 	public int getMundoY() {
 		return this.mundoY;
 	}
