@@ -27,6 +27,7 @@ public class Jugador extends Entidad {
 	private long tiempo = 0;
 	private int rango;
 	private int retDisparo;
+	private int puntuacion;
 
 	/* --- COORDENADAS EN PANTALLA ---
 	// Coordenadas FINALES y FIJAS del jugador en la PANTALLA.
@@ -55,10 +56,11 @@ public class Jugador extends Entidad {
 
 		this.mundoX = gP.getTamanioTile() * 22;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
 		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
-		this.velocidad = 4;							// Velocidad de movimiento del jugador en píxeles por fotograma.
+		this.velocidad = 10;							// Velocidad de movimiento del jugador en píxeles por fotograma.
 		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
 		this.rango = 75;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
 		this.retDisparo = 10;						// Es el retardo del disparo
+		this.puntuacion = 0;						//Es la puntuacion del jugador
 		
 		//inicializar vida
 		this.maxVida = 10;
@@ -221,9 +223,10 @@ public class Jugador extends Entidad {
 		// El jugador siempre está en el centro; el mapa se mueve a su alrededor.
 		//g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
 		g2.drawString(String.valueOf(tiempo), 200, 140);
-	    //debugPos(g2);
-		
-		
+		g2.setColor(Color.CYAN);
+		g2.drawString("Puntuacion: " + String.valueOf(puntuacion), 50, 50);
+	    
+		//debugPos(g2);
 		
 		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
 		
@@ -239,19 +242,21 @@ public class Jugador extends Entidad {
 	public void debugPos(Graphics2D g2)
 	{
 		int[][] coords = gP.getManejadorTiles().getMapaTiles();
+		int tileX = this.mundoX/gP.getTamanioTile();
+		int tileY = this.mundoY/gP.getTamanioTile();
 		
 		//Muestra X y tambien su version convertida en tiles
-		g2.drawString(String.valueOf(this.mundoX), 80, 100);
-		g2.drawString(String.valueOf(this.mundoX/gP.getTamanioTile()), 100, 110);
+		g2.drawString("Pixel x: " + String.valueOf(this.mundoX), 50, 100);
+		g2.drawString(String.valueOf(tileX), 50, 110);
 		
 		//Muestra Y y tambien su version convertida en tiles
-		g2.drawString(String.valueOf(this.mundoY), 80, 140);
-		g2.drawString(String.valueOf(this.mundoY/gP.getTamanioTile()), 100, 150);
+		g2.drawString("Pixel y: " + String.valueOf(this.mundoY), 50, 140);
+		g2.drawString(String.valueOf(tileY), 50, 150);
 		
 		//Muestra la posicion del jugador en el mapa
 		for(int i = 0; i < coords.length; i++)
 			for(int j = 0; j < coords.length; j++) {
-				if(i == this.mundoX/gP.getTamanioTile() && j == this.mundoY/gP.getTamanioTile())
+				if(i == tileX && j == tileY)
 					g2.setColor(Color.RED);
 				else
 					g2.setColor(Color.GREEN);
@@ -259,8 +264,8 @@ public class Jugador extends Entidad {
 			}
 				
 		//Muestra en que numero de tile esta posicionado el jugador
-		g2.drawString(String.valueOf(coords[this.mundoY/gP.getTamanioTile()][this.mundoX/gP.getTamanioTile()]), 100, 180);
-		
+		g2.drawString("Tile: " + String.valueOf(coords[tileY][tileX]), 100, 180);
+		g2.drawString(   String.valueOf(  gP.getManejadorTiles().getColisionDeTile( gP.getManejadorTiles().getCodigoMapaTiles(tileY, tileX) )  ), 100, 200   );
 		//gP.getManejadorTiles().getCodigoMapaTiles(this.mundoY/gP.getTamanioTile(), this.mundoX/gP.getTamanioTile())
 	}
 	
@@ -337,4 +342,14 @@ public class Jugador extends Entidad {
 	public String getDireccion() {
 		return this.direccion;
 	}
+	
+	public int getPuntuacion() {
+		return this.puntuacion;
+	}
+	
+	public void setPuntuacion(int x) {
+		this.puntuacion = x;
+	}
+	
+	
 }

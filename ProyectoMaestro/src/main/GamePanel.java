@@ -97,7 +97,7 @@ public class GamePanel extends JPanel implements Runnable {
 		long tiempoActual;
 
 																					// Bucle principal que se ejecuta mientras el hilo del juego exista (no sea null).
-		while (this.hebraJuego != null && jugador.getVidaActual()!=0) {
+		while (this.hebraJuego != null) {
 			tiempoActual = System.nanoTime();
 			delta += (tiempoActual - ultimaVez) / intervaloDibujo;					// Acumula la proporción de tiempo transcurrido respecto al intervalo de dibujo.
 			ultimaVez = tiempoActual;												// Actualiza 'ultimaVez' para el próximo ciclo.
@@ -149,6 +149,7 @@ public class GamePanel extends JPanel implements Runnable {
 	                    // Si el enemigo muere, reiniciamos sus valores para simular una reaparición (re-spawn).
 	                    enemigoActual.setPosicionAleatoria(); 
 	                    enemigoActual.setVidaActual(enemigoActual.getMaxVida()); 
+	                    jugador.setPuntuacion(jugador.getPuntuacion() + 10);
 	                }
 	                // Si el proyectil solo puede golpear un objetivo, puedes hacer 'break;' aquí
 	            }

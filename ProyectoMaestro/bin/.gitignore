@@ -1,11 +1,4 @@
-/.idea/
-/ProyectoMaestro.iml
+/mapas/
+/tile/
 /entidad/
 /main/
-/mapas/
-/module-info.class
-/spritesjugador/
-/spritesproyectil/
-/tile/
-/tiles/
-/spritesMensajes/

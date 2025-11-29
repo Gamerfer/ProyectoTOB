@@ -3,8 +3,12 @@ package entidad;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.io.IOException;
+
 import main.GamePanel;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 /**
  * Representa a un enemigo básico que sigue al jugador. 
@@ -33,11 +37,11 @@ public class Enemigo extends Entidad {
         this.setPosicionAleatoria();
 
         // Velocidad de movimiento.
-        this.velocidad = 2;
+        this.velocidad = 0;
         this.direccion = "abajo"; 
         
         //vida del enemigo
-        this.maxVida = 10;
+        this.maxVida = 1;
         this.vidaActual = this.maxVida;
         this.danio = 1;
         
@@ -47,6 +51,26 @@ public class Enemigo extends Entidad {
 		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
         
     }
+    
+    public void getSpritesJugador() {
+		try {
+			// getClass().getResourceAsStream() es la forma estándar de acceder a recursos dentro del proyecto.
+			// Carga sprite para el movimiento
+			this.arriba1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba1.png"));
+			this.arriba2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba2.png"));
+			this.abajo1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo1.png"));
+			this.abajo2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo2.png"));
+			this.izquierda1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda1.png"));
+			this.izquierda2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda2.png"));
+			this.derecha1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha1.png"));
+			this.derecha2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha2.png"));
+			this.neutro = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/neutral.png"));
+		} catch (IOException e) {
+			// Si ocurre un error al cargar las imágenes (ej: archivo no encontrado), se imprime el error.
+			e.printStackTrace();
+		}
+	}
+    
     public void setPosicionAleatoria() {
         // 1. Obtiene las dimensiones máximas del mundo en número de tiles
         int colMax = gP.getMaxColMundo(); // Máximo de columnas en el mundo [1]
@@ -54,6 +78,7 @@ public class Enemigo extends Entidad {
         int tamanioTile = gP.getTamanioTile(); // Tamaño de cada tile en píxeles [2]
         int colAleatoria;
         int renAleatorio;
+        boolean estaColision;
 
         do {
             // 2. Genera un índice de columna y fila aleatorio.
@@ -63,7 +88,11 @@ public class Enemigo extends Entidad {
             // 3. Convierte los índices de tile a coordenadas de píxel en el mundo.
             this.mundoX = colAleatoria * tamanioTile; // Coordenada X del mundo
             this.mundoY = renAleatorio * tamanioTile; // Coordenada Y del mundo
-        } while(  gP.getManejadorTiles().getColisionDeTile( gP.getManejadorTiles().getCodigoMapaTiles(colAleatoria, renAleatorio) )  );
+            
+            estaColision = gP.getManejadorTiles().getColisionDeTile( gP.getManejadorTiles().getCodigoMapaTiles(renAleatorio, colAleatoria));
+            System.out.println(estaColision);
+        } while(estaColision);
+        System.out.println("Terminar de generar\t" + colAleatoria +", " + renAleatorio);
     }
 
     /**

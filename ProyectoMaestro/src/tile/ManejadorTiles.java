@@ -232,7 +232,9 @@ public class ManejadorTiles {
 	 */
 	public int getCodigoMapaTiles(int ren, int col) {
 		// Devuelve el valor almacenado en la matriz de códigos del mapa.
-		return this.codigosMapaTiles[ren][col];
+		if(ren < 50 && col < 50)
+			return this.codigosMapaTiles[ren][col];
+		return 0;
 	}
 
 	/**
