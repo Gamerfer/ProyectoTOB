@@ -4,16 +4,24 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
+
+
 import main.GamePanel;
 import main.ManejadorTeclas;
 
 /**
- * @author Los Ratones
- * @version 0.5
- * @since 11 de julio de 2025, 09:00 horas (horario de la Ciudad de México) *
+ * Autores originales: Los Ratones
+ * @author Survivor Apocalypse
+ * @version 0.3
+ * @since 11 de noviembre de 2025, 17:00 horas (horario de la Ciudad de México) *
  *        Representa al personaje principal controlado por el usuario. Hereda
  *        las propiedades de la clase Entidad y añade la lógica para responder a
  *        las entradas del teclado y dibujarse en el centro de la pantalla.
@@ -29,13 +37,16 @@ public class Jugador extends Entidad {
 	private int retDisparo;
 	private int puntuacion;
 
+	private Clip caminar;
+	private Clip aud_disparo;
+
 	/* --- COORDENADAS EN PANTALLA ---
 	// Coordenadas FINALES y FIJAS del jugador en la PANTALLA.
 	// El jugador siempre se dibuja en el centro; es el mapa el que se mueve.*/
 	private final int pantallaX;
 	private final int pantallaY;
 
-	public Jugador(GamePanel gP, ManejadorTeclas mT) {
+	public Jugador(GamePanel gP, ManejadorTeclas mT) throws UnsupportedAudioFileException, LineUnavailableException, IOException {
 		this.gP = gP;
 		this.mT = mT;
 
@@ -47,7 +58,7 @@ public class Jugador extends Entidad {
 		// Llama a los métodos para establecer los valores iniciales y cargar los gráficos.
 		this.configuracionInicial(); 												// Establece la posición, velocidad, etc.
 		this.getSpritesJugador(); 													// Carga las imágenes del personaje.
-		
+		this.getAudioJugador();
 	}
 
 
@@ -56,7 +67,7 @@ public class Jugador extends Entidad {
 
 		this.mundoX = gP.getTamanioTile() * 22;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
 		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
-		this.velocidad = 10;							// Velocidad de movimiento del jugador en píxeles por fotograma.
+		this.velocidad = 5;							// Velocidad de movimiento del jugador en píxeles por fotograma.
 		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
 		this.rango = 75;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
 		this.retDisparo = 10;						// Es el retardo del disparo
@@ -94,6 +105,26 @@ public class Jugador extends Entidad {
 		}
 	}
 
+	public void getAudioJugador() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+		caminar = AudioSystem.getClip();
+		aud_disparo = AudioSystem.getClip();
+		
+		
+		InputStream rawStream = getClass().getResourceAsStream("/sounds/walk.wav");
+		BufferedInputStream bis = new BufferedInputStream(rawStream);
+		AudioInputStream ais = AudioSystem.getAudioInputStream(bis);			
+		caminar.open(ais);
+		
+		
+		rawStream = getClass().getResourceAsStream("/sounds/disparo.wav");
+		bis = new BufferedInputStream(rawStream);
+		ais = AudioSystem.getAudioInputStream(bis);
+		System.out.println(ais);
+		aud_disparo.open(ais);
+		
+
+	}
+
 	/**
 	 * Actualiza el estado del jugador en cada fotograma. Gestiona el movimiento y
 	 * la animación.
@@ -103,7 +134,8 @@ public class Jugador extends Entidad {
 		
 		// Solo procesa el movimiento y la animación si alguna tecla de dirección está pulsada.
 		if (mT.getTeclaArriba() || mT.getTeclaAbajo() || mT.getTeclaIzquierda() || mT.getTeclaDerecha()) {
-
+			
+			
 			// Comprueba la tecla pulsada y establece la dirección correspondiente.
 			if 		(this.mT.getTeclaArriba()) {this.direccion = "arriba";} 											// Establece la dirección a "arriba". El movimiento se gestiona más adelante.
 			else if (this.mT.getTeclaAbajo()) {this.direccion = "abajo";}
@@ -151,6 +183,9 @@ public class Jugador extends Entidad {
 					this.numeroSprites = 2;
 				} else { // Si es el 2 (o cualquier otro valor), vuelve al 1.
 					this.numeroSprites = 1;
+					caminar.setFramePosition(0);
+					caminar.start();
+
 				}
 				// Reinicia el contador para el próximo cambio de sprite.
 				this.contadorSprites = 0;
@@ -164,6 +199,9 @@ public class Jugador extends Entidad {
 		if (mT.getDisparo() && tiempo > retDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
 			gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));										//Se añade una nueva instancia de un proyectil a la lista de gamePanel
 			tiempo = 0;																							//resetea el tiempo para disparar otra vez
+			aud_disparo.setFramePosition(0);
+			aud_disparo.start();
+			System.out.println(aud_disparo);
 		}
 		
 		//Si la lista no esta vacia, revisa si es que el timer no es mayor que el rango de tiempo para que el proyectil desaparezca

@@ -4,15 +4,24 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 import entidad.Enemigo;
 import entidad.Jugador;
 import entidad.Proyectil;
 import tile.ManejadorTiles;
+
 
 /**
  * @author Los Ratones
@@ -58,11 +67,12 @@ public class GamePanel extends JPanel implements Runnable {
 	private final Jugador jugador = new Jugador(this, this.mT);
 	private final ArrayList<Enemigo> listaEnemigos = new ArrayList<Enemigo>();	private final ArrayList<Proyectil> listaProjectil= new ArrayList<Proyectil>();		// Lista de proyectiles creados por el jugador
 	private final ManejadorTiles mTi = new ManejadorTiles(this); 				//gestiona el mapa.
+	private final Clip musica = AudioSystem.getClip();							//Es el archivo en donde cargaremos la musica
 
 	/**
 	 * Constructor de GamePanel. Configura las propiedades iniciales del panel.
 	 */
-	public GamePanel() {
+	public GamePanel() throws UnsupportedAudioFileException, LineUnavailableException, IOException {
 		this.setPreferredSize(new Dimension(this.anchoPantalla, this.altoPantalla));
 		this.setBackground(Color.BLACK);											// Establece un color de fondo
 		this.setDoubleBuffered(true);												// (flickering).
@@ -76,9 +86,34 @@ public class GamePanel extends JPanel implements Runnable {
 	        listaEnemigos.add(new Enemigo(this));
 	    }
 	}
+	
+	public void cargaMusica() {
+		InputStream rawStream = getClass().getResourceAsStream("/sounds/musica.wav");
+		BufferedInputStream bis = new BufferedInputStream(rawStream);
+		AudioInputStream ais = null;
+		try {
+			ais = AudioSystem.getAudioInputStream(bis);
+		} catch (UnsupportedAudioFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			
+		try {
+			musica.open(ais);
+		} catch (LineUnavailableException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 
 	public void iniciaHebraJuego() {
+		this.cargaMusica();
 		this.configuraEnemigos();
 		this.hebraJuego = new Thread(this);
 		this.hebraJuego.start();
@@ -96,7 +131,7 @@ public class GamePanel extends JPanel implements Runnable {
 		long ultimaVez = System.nanoTime();
 		long tiempoActual;
 
-																					// Bucle principal que se ejecuta mientras el hilo del juego exista (no sea null).
+		musica.loop(10);																			// Bucle principal que se ejecuta mientras el hilo del juego exista (no sea null).
 		while (this.hebraJuego != null) {
 			tiempoActual = System.nanoTime();
 			delta += (tiempoActual - ultimaVez) / intervaloDibujo;					// Acumula la proporción de tiempo transcurrido respecto al intervalo de dibujo.
