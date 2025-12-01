@@ -32,7 +32,7 @@ public class Jefe extends Entidad {
         // --- ESTADÍSTICAS DE JEFE ---
         this.maxVida = 80;  // Mucha más vida que un zombie normal (que tiene 4)
         this.vidaActual = maxVida;
-        this.velocidad = 4; // Puedes subirlo a 4 si quieres que sea muy difícil
+        this.velocidad = 3; 
         this.danio = 2;     // Quita más vida al golpear
         
         configuracionInicial();
