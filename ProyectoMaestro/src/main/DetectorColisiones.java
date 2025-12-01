@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 
 import entidad.Entidad;
 import entidad.Jugador; 
+import entidad.Jefe;
 
 /**
  * Clase encargada de gestionar y verificar las colisiones entre las
@@ -66,6 +67,10 @@ public class DetectorColisiones {
                 break;
             default:
                 break;
+        }
+        if (entidad instanceof Jefe) {
+            if (numTile1 == 0) return;  
+            if (numTile2 == 0) return;
         }
 
         if (this.gP.getManejadorTiles().getColisionDeTile(numTile1)

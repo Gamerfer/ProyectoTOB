@@ -9,22 +9,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.JPanel;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.JPanel;
 
 import entidad.Enemigo;
+import entidad.Jefe; 
 import entidad.Jugador;
 import entidad.Proyectil;
 import tile.ManejadorTiles;
 
 public class GamePanel extends JPanel implements Runnable {
-
     private static final long serialVersionUID = 6872273934923133050L;
-    
+
     // Configuración de pantalla
     private final int tamanioOriginalTile = 16;
     private final int escala = 3;
@@ -33,33 +33,41 @@ public class GamePanel extends JPanel implements Runnable {
     private final int maxRenPantalla = 15;
     private final int anchoPantalla = this.tamanioTile * this.maxColPantalla;
     private final int altoPantalla = this.tamanioTile * this.maxRenPantalla;
-
+    
     // Configuración mundo
-    private final int maxRenMundo = 50; 
-    private final int maxColMundo = 50; 
+    private final int maxRenMundo = 50;
+    private final int maxColMundo = 50;
     private final int anchoMundo = this.tamanioTile * this.maxColMundo;
     private final int altoMundo = this.tamanioTile * this.maxRenMundo;
-    private final int FPS = 60; 
-
+    private final int FPS = 60;
+    
     // Sistema
     private Thread hebraJuego;
     private final ManejadorTeclas mT = new ManejadorTeclas();
     private final DetectorColisiones dC = new DetectorColisiones(this);
-    
+
     // Entidades
     private final Jugador jugador = new Jugador(this, this.mT);
     private final ArrayList<Enemigo> listaEnemigos = new ArrayList<Enemigo>();
     private final ArrayList<Proyectil> listaProjectil= new ArrayList<Proyectil>();
     private final ManejadorTiles mTi = new ManejadorTiles(this);
     private final Clip musica = AudioSystem.getClip();
-    
+
+    // Sonidos
     private Clip aud_gameover;
     private Clip aud_golpePersonaje;
     private Clip aud_golpeZombie;
     private Clip aud_muerteZombie;
+    private Clip aud_victoria;
 
-    // --- NUEVO: UI y ESTADOS DEL JUEGO ---
-    public UI ui = new UI(this); // Instanciamos la UI
+    // --- VARIABLES DEL JEFE FINAL ---
+    public Jefe jefeFinal;
+    public boolean jefeActivo = false; // Indica si el jefe ya apareció
+    public boolean jefeDerrotado = false; // Indica si ya lo mataste
+    public final int PUNTUACION_PARA_JEFE = 100; // <--- CAMBIA ESTO: Puntos necesarios para que salga
+
+    // UI y ESTADOS DEL JUEGO
+    public UI ui = new UI(this); 
     public int gameState;
     public final int playState = 1;
     public final int gameOverState = 2;
@@ -70,75 +78,53 @@ public class GamePanel extends JPanel implements Runnable {
         this.setDoubleBuffered(true);
         this.addKeyListener(mT);
         this.setFocusable(true);
-        
-        this.gameState = playState; // Iniciamos jugando
+
+        this.gameState = playState;
     }
 
     public void configuraEnemigos() {
-        final int NUM_ENEMIGOS_INICIALES = 10; 
+        final int NUM_ENEMIGOS_INICIALES = 10;
         for (int i = 0; i < NUM_ENEMIGOS_INICIALES; i++) {
             listaEnemigos.add(new Enemigo(this));
         }
     }
-    
+
     public void cargaMusica() {
-        InputStream rawStream = getClass().getResourceAsStream("/sounds/musica.wav");
-        BufferedInputStream bis = new BufferedInputStream(rawStream);
-        AudioInputStream ais = null;
         try {
-            ais = AudioSystem.getAudioInputStream(bis);
-        } catch (Exception e) { e.printStackTrace(); }          
-        try {
+            InputStream rawStream = getClass().getResourceAsStream("/sounds/musica.wav");
+            BufferedInputStream bis = new BufferedInputStream(rawStream);
+            AudioInputStream ais = AudioSystem.getAudioInputStream(bis);
             musica.open(ais);
         } catch (Exception e) { e.printStackTrace(); }
     }
-    
+
     public void cargaEfectos() {
         try {
-            // 1. Game Over
-            InputStream is = getClass().getResourceAsStream("/sounds/gameover.wav");
-            AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
-            aud_gameover = AudioSystem.getClip();
-            aud_gameover.open(ais);
-
-            // 2. Golpe al Personaje (Perder vida)
-            is = getClass().getResourceAsStream("/sounds/golpe_personaje.wav");
-            ais = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
-            aud_golpePersonaje = AudioSystem.getClip();
-            aud_golpePersonaje.open(ais);
-
-            // 3. Golpe al Zombie
-            is = getClass().getResourceAsStream("/sounds/golpe_zombie.wav");
-            ais = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
-            aud_golpeZombie = AudioSystem.getClip();
-            aud_golpeZombie.open(ais);
-
-            // 4. Muerte del Zombie
-            is = getClass().getResourceAsStream("/sounds/muerte_zombie.wav");
-            ais = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
-            aud_muerteZombie = AudioSystem.getClip();
-            aud_muerteZombie.open(ais);
-
+            aud_gameover = cargarSonido("/sounds/gameover.wav");
+            aud_golpePersonaje = cargarSonido("/sounds/golpe_personaje.wav");
+            aud_golpeZombie = cargarSonido("/sounds/golpe_zombie.wav");
+            aud_muerteZombie = cargarSonido("/sounds/muerte_zombie.wav");
+            aud_victoria = cargarSonido("/sounds/victoria.wav");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error cargando sonidos. Revisa los nombres de los archivos en /res/sounds/");
+            System.out.println("Error cargando sonidos.");
         }
+    }
+    
+    // Método auxiliar para cargar sonidos más limpio
+    private Clip cargarSonido(String ruta) throws Exception {
+        InputStream is = getClass().getResourceAsStream(ruta);
+        AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
+        Clip clip = AudioSystem.getClip();
+        clip.open(ais);
+        return clip;
     }
 
     public void reproducir(Clip clip) {
         if (clip != null) {
-            // 1. Si el sonido ya está sonando, lo cortamos
-            if (clip.isRunning()) {
-                clip.stop();
-            }
-            // 2. Lo regresamos al principio (rebobinar)
+            if (clip.isRunning()) clip.stop();
             clip.setFramePosition(0);
-            
-            // 3. Le damos play
             clip.start();
-        } else {
-            // Esto te ayudará a saber si el archivo no se cargó
-            System.out.println("ERROR: Intentando reproducir un audio NULL (No cargó correctamente)");
         }
     }
 
@@ -152,18 +138,18 @@ public class GamePanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-        double intervaloDibujo = 1000000000.0 / this.FPS; 
-        double delta = 0; 
+        double intervaloDibujo = 1000000000.0 / this.FPS;
+        double delta = 0;
         long ultimaVez = System.nanoTime();
         long tiempoActual;
-
-        musica.loop(10);
         
+        // Reproducir música en bucle
+        if(musica != null) musica.loop(Clip.LOOP_CONTINUOUSLY);
+
         while (this.hebraJuego != null) {
             tiempoActual = System.nanoTime();
             delta += (tiempoActual - ultimaVez) / intervaloDibujo;
             ultimaVez = tiempoActual;
-
             if (delta >= 1) {
                 this.update();
                 this.repaint();
@@ -173,66 +159,106 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-        // Solo actualizamos la lógica si estamos en modo JUEGO
         if (gameState == playState) {
-            
             this.jugador.update();
-            
-            // Revisar si el jugador murió
+
+            // REVISAR CONDICIÓN DE DERROTA
             if(this.jugador.getVidaActual() <= 0) {
                 this.gameState = gameOverState;
                 this.ui.juegoTerminado = true;
-                musica.stop(); // Opcional: detener música
+                if(musica != null) musica.stop(); 
                 reproducir(aud_gameover);
             }
 
-         
+            // --- LÓGICA DEL JEFE FINAL ---
+            // 1. Verificar si debe aparecer
+            if (!jefeActivo && !jefeDerrotado && jugador.getPuntuacion() >= PUNTUACION_PARA_JEFE) {
+                jefeFinal = new Jefe(this); // Instanciar al jefe
+                jefeActivo = true;
+                System.out.println("¡EL JEFE HA APARECIDO EN EL CENTRO!");
+                // Opcional: Podrías cambiar la música aquí
+            }
+
+            // 2. Actualizar Jefe si está activo
+            if (jefeActivo) {
+                jefeFinal.update();
+                
+                // Colisión Jefe golpea a Jugador
+                if (dC.revisaJugador(jefeFinal)) {
+                    int vidaAntes = this.jugador.getVidaActual();
+                    this.jugador.recibeDanio(jefeFinal.getDanio());
+                    if(this.jugador.getVidaActual() < vidaAntes) {
+                        reproducir(aud_golpePersonaje);
+                    }
+                }
+            }
+            // -----------------------------
+
+            // Lógica enemigos normales
             for (Enemigo e : listaEnemigos) {
                 e.update();
                 if (dC.revisaJugador(e)) {
-                    // Guardamos la vida antes del golpe para saber si bajó
                     int vidaAntes = this.jugador.getVidaActual();
-                    
                     this.jugador.recibeDanio(e.getDanio());
-                    
-                    // Si la vida bajó (significa que no era invencible), suena el golpe
                     if(this.jugador.getVidaActual() < vidaAntes) {
-                        reproducir(aud_golpePersonaje); // <--- SONIDO GOLPE PERSONAJE
+                        reproducir(aud_golpePersonaje);
                     }
                 }
             }
 
-         // 3. LOGICA DISPARO A ZOMBIE
+            // Lógica Proyectiles (Vs Enemigos y Vs Jefe)
             Iterator<Proyectil> iteradorProyectil = listaProjectil.iterator();
             while (iteradorProyectil.hasNext()) {
                 Proyectil proyectilActual = iteradorProyectil.next();
                 proyectilActual.update();
-                
-                Iterator<Enemigo> iteradorEnemigo = listaEnemigos.iterator();
-                boolean proyectilGolpeo = false;
+                boolean proyectilImpacto = false;
 
-                while (iteradorEnemigo.hasNext()) {
-                    Enemigo enemigoActual = iteradorEnemigo.next();
+                // A) Verificar impacto contra JEFE
+                if (jefeActivo) {
+                    if (dC.revisaEntidad(proyectilActual, jefeFinal)) {
+                        jefeFinal.recibeDanio(proyectilActual.getDanio());
+                        proyectilImpacto = true;
+                        reproducir(aud_golpeZombie); // Sonido de golpe
 
-                    if (dC.revisaEntidad(proyectilActual, enemigoActual)) {
-                        enemigoActual.recibeDanio(proyectilActual.getDanio());
-                        proyectilGolpeo = true;
-                        
-                        // Si el zombie muere
-                        if (enemigoActual.getVidaActual() <= 0) {
-                            reproducir(aud_muerteZombie); // <--- SONIDO ZOMBIE MUERE
-                            enemigoActual.setPosicionAleatoria(); 
-                            enemigoActual.setVidaActual(enemigoActual.getMaxVida());
-                            jugador.setPuntuacion(jugador.getPuntuacion() + 10);
-                        } else {
-                            // Si el zombie sigue vivo
-                            reproducir(aud_golpeZombie); // <--- SONIDO ZOMBIE HERIDO
+                        if (jefeFinal.getVidaActual() <= 0) {
+                            jefeActivo = false;
+                            jefeDerrotado = true;
+                            reproducir(aud_muerteZombie);
+                            jugador.setPuntuacion(jugador.getPuntuacion() + 500); // Super Bonus
+                            System.out.println("¡JEFE DERROTADO!");
+                            if(musica!= null) musica.stop();
+                            ui.victoria = true;
+                            reproducir(aud_victoria);
+                            this.gameState = gameOverState;
                         }
-                        break;
                     }
                 }
-                if (proyectilGolpeo || proyectilActual.getTimer() > 75) {
-                     iteradorProyectil.remove(); 
+
+                // B) Verificar impacto contra Enemigos normales (si no golpeó al jefe)
+                if (!proyectilImpacto) {
+                    Iterator<Enemigo> iteradorEnemigo = listaEnemigos.iterator();
+                    while (iteradorEnemigo.hasNext()) {
+                        Enemigo enemigoActual = iteradorEnemigo.next();
+                        if (dC.revisaEntidad(proyectilActual, enemigoActual)) {
+                            enemigoActual.recibeDanio(proyectilActual.getDanio());
+                            proyectilImpacto = true;
+
+                            if (enemigoActual.getVidaActual() <= 0) {
+                                reproducir(aud_muerteZombie);
+                                enemigoActual.setPosicionAleatoria();
+                                enemigoActual.setVidaActual(enemigoActual.getMaxVida());
+                                jugador.setPuntuacion(jugador.getPuntuacion() + 10);
+                            } else {
+                                reproducir(aud_golpeZombie);
+                            }
+                            break; 
+                        }
+                    }
+                }
+
+                // Eliminar proyectil si golpeó algo o si voló muy lejos
+                if (proyectilImpacto || proyectilActual.getTimer() > 75) {
+                    iteradorProyectil.remove();
                 }
             }
         }
@@ -242,25 +268,30 @@ public class GamePanel extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        
+
         // 1. Dibujar Mundo y Entidades
         this.mTi.draw(g2);
-        
+
         // Dibujar proyectiles
         for(Proyectil i : listaProjectil) i.draw(g2);
-        
-        // Dibujar enemigos
-        for (Enemigo e : listaEnemigos) e.draw(g2); 
-        
+
+        // Dibujar enemigos normales
+        for (Enemigo e : listaEnemigos) e.draw(g2);
+
+        // --- DIBUJAR JEFE ---
+        if (jefeActivo && jefeFinal != null) {
+            jefeFinal.draw(g2);
+        }
+        // --------------------
+
         this.jugador.draw(g2);
-
-        // 2. Dibujar UI (Puntaje, Vidas, Game Over) encima de todo
+        
+        // 2. Dibujar UI
         ui.draw(g2);
-
         g2.dispose();
     }
 
-    // --- Getters ---
+    // Getters
     public int getTamanioTile() { return this.tamanioTile; }
     public int getMaxRenPantalla() { return this.maxRenPantalla; }
     public int getMaxColPantalla() { return this.maxColPantalla; }

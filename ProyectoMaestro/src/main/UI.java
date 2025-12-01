@@ -13,10 +13,12 @@ public class UI {
     Font fuenteArial_40, fuenteArial_80B;
     
     BufferedImage imagenGameOver;
+    BufferedImage imagenVictoria;
     BufferedImage corazonFull; // Variable para el corazón
 
     public boolean juegoTerminado = false;
-
+    public boolean victoria = false;
+    
     public UI(GamePanel gP) {
         this.gP = gP;
         
@@ -26,7 +28,7 @@ public class UI {
         try {
             // Carga Game Over
             imagenGameOver = ImageIO.read(getClass().getResourceAsStream("/spritesMensajes/gameover.png"));
-            
+            imagenVictoria = ImageIO.read(getClass().getResourceAsStream("/spritesMensajes/victoria.png"));
             corazonFull = ImageIO.read(getClass().getResourceAsStream("/spritesMensajes/corazon_full.png"));
             
             System.out.println("¡Imagen del corazón cargada con éxito!"); // Mensaje de éxito en consola
@@ -38,7 +40,16 @@ public class UI {
     }
 
     public void draw(Graphics2D g2) {
-        
+    	if (victoria) {
+            g2.setColor(new Color(0, 0, 0, 180));
+            g2.fillRect(0, 0, gP.getAnchoPantalla(), gP.getAltoPantalla());
+
+            int x = gP.getAnchoPantalla() / 2 - imagenVictoria.getWidth() / 2;
+            int y = gP.getAltoPantalla() / 2 - imagenVictoria.getHeight() / 2;
+
+            g2.drawImage(imagenVictoria, x, y, null);
+            return;
+        }
         if (juegoTerminado) {
 
             g2.setColor(new Color(0, 0, 0, 150));

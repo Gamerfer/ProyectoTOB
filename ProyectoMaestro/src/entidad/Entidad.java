@@ -62,7 +62,10 @@ public class Entidad {
     public String getDireccion() {
         return this.direccion;
     }
-    
+    public java.awt.Rectangle getAreaSolida() {
+        return areaSolida;
+    }
+
     // Getters para las propiedades de la hitbox [3]
     public int getAreaSolidaX() {
         return this.areaSolida.x;
@@ -96,6 +99,9 @@ public class Entidad {
     // Setter existente [7]
     public void setColisionActivada(boolean valor) {
         this.colisionActivada = valor;
+    }
+    public boolean getColisionActivada() {
+        return colisionActivada;
     }
     
     public int getDanio() {
