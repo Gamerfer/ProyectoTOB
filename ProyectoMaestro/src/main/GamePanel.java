@@ -59,18 +59,22 @@ public class GamePanel extends JPanel implements Runnable {
     private Clip aud_golpeZombie;
     private Clip aud_muerteZombie;
     private Clip aud_victoria;
+    private Clip aud_Scream;
 
     // --- VARIABLES DEL JEFE FINAL ---
     public Jefe jefeFinal;
     public boolean jefeActivo = false; // Indica si el jefe ya apareció
     public boolean jefeDerrotado = false; // Indica si ya lo mataste
-    public final int PUNTUACION_PARA_JEFE = 100; // <--- CAMBIA ESTO: Puntos necesarios para que salga
+    public final int PUNTUACION_PARA_JEFE = 100; //
 
     // UI y ESTADOS DEL JUEGO
     public UI ui = new UI(this); 
     public int gameState;
+    public final int titleState = 0;
     public final int playState = 1;
     public final int gameOverState = 2;
+    public final int winState = 3;
+
 
     public GamePanel() throws UnsupportedAudioFileException, LineUnavailableException, IOException {
         this.setPreferredSize(new Dimension(this.anchoPantalla, this.altoPantalla));
@@ -79,7 +83,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(mT);
         this.setFocusable(true);
 
-        this.gameState = playState;
+        this.gameState = titleState;
     }
 
     public void configuraEnemigos() {
@@ -105,6 +109,7 @@ public class GamePanel extends JPanel implements Runnable {
             aud_golpeZombie = cargarSonido("/sounds/golpe_zombie.wav");
             aud_muerteZombie = cargarSonido("/sounds/muerte_zombie.wav");
             aud_victoria = cargarSonido("/sounds/victoria.wav");
+            aud_Scream = cargarSonido("/sounds/zombieScream.wav");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error cargando sonidos.");
@@ -159,6 +164,25 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
+    	
+    	if (gameState == titleState) {
+            // Si estamos en la portada y presionan ESPACIO (que es el disparo en tu código)
+            if (mT.getDisparo() == true) {
+                gameState = playState; // ¡COMIENZA EL JUEGO!
+                // Opcional: reproducir sonido de inicio
+            }
+            return; // Importante: Salimos del método para que NO se muevan enemigos ni jugador todavía
+        }
+    	
+    	if (gameState == gameOverState) {
+            // Si presionan Espacio (getDisparo) mientras perdieron
+            if (mT.getDisparo() == true) {
+                reiniciarJuego();      // Llamamos al método que creamos arriba
+                gameState = playState; // Cambiamos el estado a JUGAR
+            }
+            return; // Salimos para no procesar nada más
+        }
+    	
         if (gameState == playState) {
             this.jugador.update();
 
@@ -166,7 +190,8 @@ public class GamePanel extends JPanel implements Runnable {
             if(this.jugador.getVidaActual() <= 0) {
                 this.gameState = gameOverState;
                 this.ui.juegoTerminado = true;
-                if(musica != null) musica.stop(); 
+                if(musica != null) musica.stop();
+                reproducir(aud_Scream);
                 reproducir(aud_gameover);
             }
 
@@ -290,7 +315,36 @@ public class GamePanel extends JPanel implements Runnable {
         ui.draw(g2);
         g2.dispose();
     }
+    
+    public void reiniciarJuego() {
+        // Restaurar al Jugador
+        jugador.configuracionInicial(); 
 
+        jugador.setPuntuacion(0); 
+
+        // Limpiar las listas viejas
+        listaEnemigos.clear();
+        listaProjectil.clear();
+        
+        //Volver a crear enemigos
+        configuraEnemigos(); 
+        
+        //REINICIAR LÓGICA DEL JEFE
+        jefeFinal = null;       // Borra al jefe viejo de la memoria
+        jefeActivo = false;     // decimos al juego que el jefe NO está en pantalla
+        jefeDerrotado = false;  // decimos que NO lo hemos derrotado aún
+        
+        // Reiniciar banderas de la UI
+        ui.juegoTerminado = false; 
+        ui.victoria = false;
+
+        // Reiniciar música
+        if (musica != null) {
+            musica.setFramePosition(0);
+            musica.start(); 
+        }
+    }
+    
     // Getters
     public int getTamanioTile() { return this.tamanioTile; }
     public int getMaxRenPantalla() { return this.maxRenPantalla; }

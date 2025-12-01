@@ -150,7 +150,6 @@ public class Jefe extends Entidad {
             g2.drawRect(pantallaX, pantallaY - 20, anchoBarra, 10);
         }
 
-        // --- DIBUJO GIGANTE ---
         // dibujamos multiplicada por 3
         if (sprite != null) {
             g2.drawImage(sprite, pantallaX, pantallaY, gP.getTamanioTile() * 3, gP.getTamanioTile() * 3, null);
