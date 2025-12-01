@@ -1,393 +1,205 @@
 package entidad;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
-
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
-
-
 import main.GamePanel;
 import main.ManejadorTeclas;
 
-/**
- * Autores originales: Los Ratones
- * @author Survivor Apocalypse
- * @version 0.3
- * @since 11 de noviembre de 2025, 17:00 horas (horario de la Ciudad de México) *
- *        Representa al personaje principal controlado por el usuario. Hereda
- *        las propiedades de la clase Entidad y añade la lógica para responder a
- *        las entradas del teclado y dibujarse en el centro de la pantalla.
- */
 public class Jugador extends Entidad {
-
-	// --- REFERENCIAS A COMPONENTES PRINCIPALES ---
-	private final GamePanel gP;
-	private final ManejadorTeclas mT;
-
-	private long tiempo = 0;
-	private int rango;
-	private int retDisparo;
-	private int puntuacion;
-
-	private Clip caminar;
-	private Clip aud_disparo;
-
-	/* --- COORDENADAS EN PANTALLA ---
-	// Coordenadas FINALES y FIJAS del jugador en la PANTALLA.
-	// El jugador siempre se dibuja en el centro; es el mapa el que se mueve.*/
-	private final int pantallaX;
-	private final int pantallaY;
-
-	public Jugador(GamePanel gP, ManejadorTeclas mT) throws UnsupportedAudioFileException, LineUnavailableException, IOException {
-		this.gP = gP;
-		this.mT = mT;
-
-	
-		// Se resta la mitad del tamaño del mosaico para que el CENTRO del jugador quede en el centro de la pantalla.
-		this.pantallaX = gP.getAnchoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición X central en la pantalla.
-		this.pantallaY = gP.getAltoPantalla() / 2 - (gP.getTamanioTile() / 2);		// Calcula la posición Y central en la pantalla.
-		
-		// Llama a los métodos para establecer los valores iniciales y cargar los gráficos.
-		this.configuracionInicial(); 												// Establece la posición, velocidad, etc.
-		this.getSpritesJugador(); 													// Carga las imágenes del personaje.
-		this.getAudioJugador();
-	}
-
-
-	 //Establece los valores por defecto del jugador al iniciar el juego.
-	public void configuracionInicial() {
-
-		this.mundoX = gP.getTamanioTile() * 22;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas X).
-		this.mundoY = gP.getTamanioTile() * 30;		// Posición inicial del jugador en el mapa del MUNDO (coordenadas Y).
-		this.velocidad = 5;							// Velocidad de movimiento del jugador en píxeles por fotograma.
-		this.direccion = "abajo";					// Dirección inicial a la que mira el jugador.
-		this.rango = 75;								// Que tan lejos va a llegar el proyectil (Todavia no implementado)
-		this.retDisparo = 10;						// Es el retardo del disparo
-		this.puntuacion = 0;						//Es la puntuacion del jugador
-		
-		//inicializar vida
-		this.maxVida = 10;
-		this.vidaActual = maxVida;
-		
-		//Area de colision
-		hitbox = 32; 																// Tamaño de la area de colision
-		this.offset = (gP.getTamanioTile() - hitbox) / 2; 							// Compensacion de la posición de la hitbox para que este en el centro
-		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);								// Define el área sólida (hitbox) del jugador. new Rectangle(x, y, ancho, alto) relativo a la esquina superior izquierda del sprite.
-
-	}
-
-
-	//Carga las imágenes (sprites) del jugador desde la carpeta de recursos.
-	public void getSpritesJugador() {
-		try {
-			// getClass().getResourceAsStream() es la forma estándar de acceder a recursos dentro del proyecto.
-			// Carga sprite para el movimiento
-			this.arriba1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba1.png"));
-			this.arriba2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba2.png"));
-			this.abajo1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo1.png"));
-			this.abajo2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo2.png"));
-			this.izquierda1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda1.png"));
-			this.izquierda2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda2.png"));
-			this.derecha1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha1.png"));
-			this.derecha2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha2.png"));
-			this.neutro = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/neutral.png"));
-		} catch (IOException e) {
-			// Si ocurre un error al cargar las imágenes (ej: archivo no encontrado), se imprime el error.
-			e.printStackTrace();
-		}
-	}
-
-	public void getAudioJugador() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
-		caminar = AudioSystem.getClip();
-		aud_disparo = AudioSystem.getClip();
-		
-		
-		InputStream rawStream = getClass().getResourceAsStream("/sounds/walk.wav");
-		BufferedInputStream bis = new BufferedInputStream(rawStream);
-		AudioInputStream ais = AudioSystem.getAudioInputStream(bis);			
-		caminar.open(ais);
-		
-		
-		rawStream = getClass().getResourceAsStream("/sounds/disparo.wav");
-		bis = new BufferedInputStream(rawStream);
-		ais = AudioSystem.getAudioInputStream(bis);
-		System.out.println(ais);
-		aud_disparo.open(ais);
-		
-
-	}
-
-	/**
-	 * Actualiza el estado del jugador en cada fotograma. Gestiona el movimiento y
-	 * la animación.
-	 */
-	public void update() {
-		
-		
-		// Solo procesa el movimiento y la animación si alguna tecla de dirección está pulsada.
-		if (mT.getTeclaArriba() || mT.getTeclaAbajo() || mT.getTeclaIzquierda() || mT.getTeclaDerecha()) {
-			
-			
-			// Comprueba la tecla pulsada y establece la dirección correspondiente.
-			if 		(this.mT.getTeclaArriba()) {this.direccion = "arriba";} 											// Establece la dirección a "arriba". El movimiento se gestiona más adelante.
-			else if (this.mT.getTeclaAbajo()) {this.direccion = "abajo";}
-			else if (this.mT.getTeclaIzquierda()) {this.direccion = "izquierda";}
-			else if (this.mT.getTeclaDerecha()) {this.direccion = "derecha";}
-			
-			// Reinicia la bandera de colisión antes de cada comprobación.
-			this.colisionActivada = false;
-			// Llama al detector de colisiones para que revise si hay un obstáculo en la
-			// dirección actual.
-			this.gP.getDetectorColisiones().revisaTile(this);
-
-			// Si la bandera de colisión NO fue activada por el detector...
-			if (this.colisionActivada == false) {
-				// ... permite que el jugador se mueva.
-				switch (this.getDireccion()) {
-				case "arriba":
-					// Mueve al jugador hacia arriba en el mapa del mundo.
-					this.setMundoY(this.getMundoY() - this.getVelocidad());
-					break;
-				case "abajo":
-					this.setMundoY(this.getMundoY() + this.getVelocidad());
-					break;
-				case "izquierda":
-					this.setMundoX(this.getMundoX() - this.getVelocidad());
-					break;
-				case "derecha":
-					this.setMundoX(this.getMundoX() + this.getVelocidad());
-					break;
-
-				default:
-					break; // Caso por defecto, no hace nada.
-				}
-			}
-
-
-			// Incrementa el contador de sprites para la animación en cada fotograma de
-			// movimiento.
-			this.contadorSprites++;
-			// Lógica para cambiar el fotograma de la animación cada cierto número de
-			// updates.
-			if (this.contadorSprites > this.cambiaSprite) {
-				// Si el sprite actual es el 1, cambia al 2.
-				if (this.numeroSprites == 1) {
-					this.numeroSprites = 2;
-				} else { // Si es el 2 (o cualquier otro valor), vuelve al 1.
-					this.numeroSprites = 1;
-					caminar.setFramePosition(0);
-					caminar.start();
-
-				}
-				// Reinicia el contador para el próximo cambio de sprite.
-				this.contadorSprites = 0;
-			}
-		}
-
-		
-		if(tiempo < retDisparo+1)																						//Cuenta el tiempo mientras no se pase de 200 (200 para que no sume para siempre)
-			tiempo++;
-		
-		if (mT.getDisparo() && tiempo > retDisparo){		 													// si se presiona la tecla de disparo y cuando ya haya pasado el tiempo de recarga del disparo.
-			gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));										//Se añade una nueva instancia de un proyectil a la lista de gamePanel
-			tiempo = 0;																							//resetea el tiempo para disparar otra vez
-			aud_disparo.setFramePosition(0);
-			aud_disparo.start();
-			System.out.println(aud_disparo);
-		}
-		
-		//Si la lista no esta vacia, revisa si es que el timer no es mayor que el rango de tiempo para que el proyectil desaparezca
-		if(!gP.getListaProjectil().isEmpty())
-			for(int i=0; i<gP.getListaProjectil().size(); i++)
-				if(gP.getListaProjectil().get(i).getTimer() > rango)
-					gP.getListaProjectil().remove(i);
-		
-	}
-
-	/**
-	 * Dibuja al jugador en la pantalla. * @param g2 El contexto gráfico
-	 * {@link Graphics2D} para dibujar.
-	 */
-	public void draw(Graphics2D g2) {
-		BufferedImage sprite = null;	// Declara una variable para almacenar el sprite que se va a dibujar.
-
-		// Selecciona el sprite correcto basado en la dirección y el número de sprite actual.
-		switch (this.direccion) {
-		case "arriba":
-			// Usa el operador ternario para elegir entre el sprite 1 y 2 de "arriba".
-			sprite = (this.numeroSprites == 1) ? this.arriba1 : this.arriba2;
-			break;
-		case "abajo":
-			sprite = (this.numeroSprites == 1) ? this.abajo1 : this.abajo2;
-			break;
-		case "izquierda":
-			sprite = (this.numeroSprites == 1) ? this.izquierda1 : this.izquierda2;
-			break;
-		case "derecha":
-			sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2;
-			break;
-		}
-		// --- LÓGICA DE DIBUJO DE LA BARRA DE VIDA (NUEVO) ---
-
-	    // El jugador se dibuja en coordenadas de pantalla fijas (pantallaX, pantallaY) [12, 13].
-	    int anchoBarra = gP.getTamanioTile();
-	    int altoBarra = 5;
-	    int offsetY = 10;
-
-	    int barraX = this.getPantallaX(); // [6]
-	    int barraY = this.getPantallaY() - offsetY; // [6]
-
-	    // 1. Fondo de la barra (Negro)
-	    g2.setColor(Color.BLACK);
-	    g2.fillRect(barraX, barraY, anchoBarra, altoBarra);
-
-	    // 2. Calcula el ancho de la vida actual.
-	    double proporcionVida = (double) this.vidaActual / this.maxVida;
-	    int vidaActualAncho = (int) (proporcionVida * anchoBarra);
-
-	    // 3. Dibuja la vida actual (Verde).
-	    g2.setColor(Color.GREEN);
-	    g2.fillRect(barraX, barraY, vidaActualAncho, altoBarra);
-
-		// Dibuja el sprite seleccionado en las coordenadas FIJAS de la pantalla.
-		// El jugador siempre está en el centro; el mapa se mueve a su alrededor.
-		//g2.drawString(String.valueOf(System.currentTimeMillis() - tInicio), 200, 120);
-		g2.drawString(String.valueOf(tiempo), 200, 140);
-		g2.setColor(Color.CYAN);
-		g2.drawString("Puntuacion: " + String.valueOf(puntuacion), 50, 50);
-	    
-		//debugPos(g2);
-		
-		g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); //dibuja 'sprite' en pantalla(x,y) con un tamaño de 48x48
-		
-		/*
-		//hitbox
-		g2.setColor(Color.RED);
-	    g2.fillRect(this.pantallaX + this.offset, this.pantallaY + this.offset, hitbox, hitbox);
-	    */	
-	}
 	
 	
-	//Metodo para mostrar datos de posicion en pantalla
-	public void debugPos(Graphics2D g2)
-	{
-		int[][] coords = gP.getManejadorTiles().getMapaTiles();
-		int tileX = this.mundoX/gP.getTamanioTile();
-		int tileY = this.mundoY/gP.getTamanioTile();
-		
-		//Muestra X y tambien su version convertida en tiles
-		g2.drawString("Pixel x: " + String.valueOf(this.mundoX), 50, 100);
-		g2.drawString(String.valueOf(tileX), 50, 110);
-		
-		//Muestra Y y tambien su version convertida en tiles
-		g2.drawString("Pixel y: " + String.valueOf(this.mundoY), 50, 140);
-		g2.drawString(String.valueOf(tileY), 50, 150);
-		
-		//Muestra la posicion del jugador en el mapa
-		for(int i = 0; i < coords.length; i++)
-			for(int j = 0; j < coords.length; j++) {
-				if(i == tileX && j == tileY)
-					g2.setColor(Color.RED);
-				else
-					g2.setColor(Color.GREEN);
-				g2.drawString(String.valueOf(coords[j][i]), 300 + 10*i, 100 + 10*j);
-			}
-				
-		//Muestra en que numero de tile esta posicionado el jugador
-		g2.drawString("Tile: " + String.valueOf(coords[tileY][tileX]), 100, 180);
-		g2.drawString(   String.valueOf(  gP.getManejadorTiles().getColisionDeTile( gP.getManejadorTiles().getCodigoMapaTiles(tileY, tileX) )  ), 100, 200   );
-		//gP.getManejadorTiles().getCodigoMapaTiles(this.mundoY/gP.getTamanioTile(), this.mundoX/gP.getTamanioTile())
-	}
-	
 
-	//================================================================
-	public void recibeDanio(int danio) {
-	    this.vidaActual -= danio;
-	    if (this.vidaActual < 0) {
-	        this.vidaActual = 0;
-	    }
-	}
-	
-	
-	// --- GETTERS Y SETTERS ---
-	// Proporcionan acceso controlado a las propiedades del jugador.
+    private final GamePanel gP;
+    private final ManejadorTeclas mT;
 
-	/** @return La coordenada X del jugador en el mundo. */
-	public int getMundoX() {
-		return this.mundoX;
-	}
+    private long tiempo = 0;
+    private int rango;
+    private int retDisparo;
+    private int puntuacion;
 
-	/** @param valor La nueva coordenada X del jugador en el mundo. */
-	public void setMundoX(int valor) {
-		this.mundoX = valor;
-	}
+    // Variables de Invencibilidad
+    private boolean invencible = false;
+    private int invencibleContador = 0;
 
-	/** @return La coordenada Y del jugador en el mundo. */
-	
-	public int getMundoY() {
-		return this.mundoY;
-	}
+    private Clip caminar;
+    private Clip aud_disparo;
 
-	/** @param valor La nueva coordenada Y del jugador en el mundo. */
-	public void setMundoY(int valor) {
-		this.mundoY = valor;
-	}
+    private final int pantallaX;
+    private final int pantallaY;
 
-	/** @return La velocidad de movimiento del jugador. */
-	public int getVelocidad() {
-		return this.velocidad;
-	}
+    public Jugador(GamePanel gP, ManejadorTeclas mT) throws UnsupportedAudioFileException, LineUnavailableException, IOException {
+        this.gP = gP;
+        this.mT = mT;
 
-	/** @return La coordenada X fija del jugador en la pantalla. */
-	public int getPantallaX() {
-		return this.pantallaX;
-	}
+        this.pantallaX = gP.getAnchoPantalla() / 2 - (gP.getTamanioTile() / 2);
+        this.pantallaY = gP.getAltoPantalla() / 2 - (gP.getTamanioTile() / 2);
+        
+        this.configuracionInicial();
+        this.getSpritesJugador();
+        this.getAudioJugador();
+    }
 
-	/** @return La coordenada Y fija del jugador en la pantalla. */
-	public int getPantallaY() {
-		return this.pantallaY;
-	}
+    public void configuracionInicial() {
+        this.mundoX = gP.getTamanioTile() * 22;
+        this.mundoY = gP.getTamanioTile() * 30;
+        this.velocidad = 5;
+        this.direccion = "abajo";
+        this.rango = 75;
+        this.retDisparo = 10;
+        this.puntuacion = 0;
+        
+        // --- CAMBIO: SISTEMA DE 3 VIDAS ---
+        this.maxVida = 3; // 3 vidas como pediste
+        this.vidaActual = maxVida;
+        
+        hitbox = 32;
+        this.offset = (gP.getTamanioTile() - hitbox) / 2;
+        this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
+    }
 
-	/** @return La coordenada X del área sólida (hitbox) relativa al sprite. */
-	public int getAreaSolidaX() {
-		return this.areaSolida.x;
-	}
+    public void getSpritesJugador() {
+        // ... (Tu código de carga de imágenes se mantiene igual) ...
+        try {
+            this.arriba1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba1.png"));
+            this.arriba2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverArriba2.png"));
+            this.abajo1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo1.png"));
+            this.abajo2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverAbajo2.png"));
+            this.izquierda1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda1.png"));
+            this.izquierda2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverIzquierda2.png"));
+            this.derecha1 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha1.png"));
+            this.derecha2 = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/moverDerecha2.png"));
+            this.neutro = ImageIO.read(getClass().getResourceAsStream("/spritesjugador/neutral.png"));
+        } catch (IOException e) { e.printStackTrace(); }
+    }
 
-	/** @return La coordenada Y del área sólida (hitbox) relativa al sprite. */
-	public int getAreaSolidaY() {
-		return this.areaSolida.y;
-	}
+    public void getAudioJugador() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+        // ... (Tu código de audio se mantiene igual) ...
+        caminar = AudioSystem.getClip();
+        aud_disparo = AudioSystem.getClip();
+        InputStream rawStream = getClass().getResourceAsStream("/sounds/walk.wav");
+        BufferedInputStream bis = new BufferedInputStream(rawStream);
+        AudioInputStream ais = AudioSystem.getAudioInputStream(bis);            
+        caminar.open(ais);
+        rawStream = getClass().getResourceAsStream("/sounds/disparo.wav");
+        bis = new BufferedInputStream(rawStream);
+        ais = AudioSystem.getAudioInputStream(bis);
+        aud_disparo.open(ais);
+    }
 
-	/** @return El ancho del área sólida (hitbox). */
-	public int getAreaSolidaAncho() {
-		return this.areaSolida.width;
-	}
+    public void update() {
+        if (mT.getTeclaArriba() || mT.getTeclaAbajo() || mT.getTeclaIzquierda() || mT.getTeclaDerecha()) {
+            if (this.mT.getTeclaArriba()) {this.direccion = "arriba";}
+            else if (this.mT.getTeclaAbajo()) {this.direccion = "abajo";}
+            else if (this.mT.getTeclaIzquierda()) {this.direccion = "izquierda";}
+            else if (this.mT.getTeclaDerecha()) {this.direccion = "derecha";}
+            
+            this.colisionActivada = false;
+            this.gP.getDetectorColisiones().revisaTile(this);
 
-	/** @return El alto del área sólida (hitbox). */
-	public int getAreaSolidaAlto() {
-		return this.areaSolida.height;
-	}
+            if (this.colisionActivada == false) {
+                switch (this.getDireccion()) {
+                case "arriba": this.setMundoY(this.getMundoY() - this.getVelocidad()); break;
+                case "abajo": this.setMundoY(this.getMundoY() + this.getVelocidad()); break;
+                case "izquierda": this.setMundoX(this.getMundoX() - this.getVelocidad()); break;
+                case "derecha": this.setMundoX(this.getMundoX() + this.getVelocidad()); break;
+                default: break;
+                }
+            }
 
-	/** @return La dirección actual del jugador como un String. */
-	public String getDireccion() {
-		return this.direccion;
-	}
-	
-	public int getPuntuacion() {
-		return this.puntuacion;
-	}
-	
-	public void setPuntuacion(int x) {
-		this.puntuacion = x;
-	}
-	
-	
+            this.contadorSprites++;
+            if (this.contadorSprites > this.cambiaSprite) {
+                if (this.numeroSprites == 1) {
+                    this.numeroSprites = 2;
+                } else {
+                    this.numeroSprites = 1;
+                    caminar.setFramePosition(0);
+                    caminar.start();
+                }
+                this.contadorSprites = 0;
+            }
+        }
+
+        if(tiempo < retDisparo+1) tiempo++;
+        
+        if (mT.getDisparo() && tiempo > retDisparo){                                                     
+            gP.getListaProjectil().add(new Proyectil(this.gP, this.mT));                                        
+            tiempo = 0;                                                                                         
+            aud_disparo.setFramePosition(0);
+            aud_disparo.start();
+        }
+        
+        if(!gP.getListaProjectil().isEmpty())
+            for(int i=0; i<gP.getListaProjectil().size(); i++)
+                if(gP.getListaProjectil().get(i).getTimer() > rango)
+                    gP.getListaProjectil().remove(i);
+
+        // --- LÓGICA DE INVENCIBILIDAD ---
+        // Esto evita que pierdas las 3 vidas en un solo segundo al tocar un zombie
+        if(invencible) {
+            invencibleContador++;
+            if(invencibleContador > 60) { // 60 frames = 1 segundo de invencibilidad
+                invencible = false;
+                invencibleContador = 0;
+            }
+        }
+    }
+
+    public void draw(Graphics2D g2) {
+        BufferedImage sprite = null;
+
+        switch (this.direccion) {
+        case "arriba": sprite = (this.numeroSprites == 1) ? this.arriba1 : this.arriba2; break;
+        case "abajo": sprite = (this.numeroSprites == 1) ? this.abajo1 : this.abajo2; break;
+        case "izquierda": sprite = (this.numeroSprites == 1) ? this.izquierda1 : this.izquierda2; break;
+        case "derecha": sprite = (this.numeroSprites == 1) ? this.derecha1 : this.derecha2; break;
+        }
+
+        // Efecto visual de parpadeo cuando eres invencible (te han golpeado)
+        if (invencible == true) {
+            // Hace al personaje 50% transparente
+            g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.5f));
+        }
+        
+        g2.drawImage(sprite, this.pantallaX, this.pantallaY, this.gP.getTamanioTile(), this.gP.getTamanioTile(), null); 
+        
+        // Restaurar opacidad
+        g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+
+        // NOTA: He quitado el dibujado de texto y barras aquí. Ahora se encarga la clase UI.
+    }
+
+    // --- NUEVO MÉTODO PARA RECIBIR DAÑO ---
+    @Override
+    public void recibeDanio(int danio) {
+        if(!invencible) {
+            this.vidaActual -= danio;
+            invencible = true; // Activa la invencibilidad temporal
+            if (this.vidaActual < 0) {
+                this.vidaActual = 0;
+            System.out.println("Jugador golpeado. Vidas restantes: " + vidaActual);
+        }
+    }
+    }
+    
+    // Getters y Setters...
+    public int getMundoX() { return this.mundoX; }
+    public void setMundoX(int valor) { this.mundoX = valor; }
+    public int getMundoY() { return this.mundoY; }
+    public void setMundoY(int valor) { this.mundoY = valor; }
+    public int getVelocidad() { return this.velocidad; }
+    public int getPantallaX() { return this.pantallaX; }
+    public int getPantallaY() { return this.pantallaY; }
+    public int getAreaSolidaX() { return this.areaSolida.x; }
+    public int getAreaSolidaY() { return this.areaSolida.y; }
+    public int getAreaSolidaAncho() { return this.areaSolida.width; }
+    public int getAreaSolidaAlto() { return this.areaSolida.height; }
+    public String getDireccion() { return this.direccion; }
+    public int getPuntuacion() { return this.puntuacion; }
+    public void setPuntuacion(int x) { this.puntuacion = x; }
 }

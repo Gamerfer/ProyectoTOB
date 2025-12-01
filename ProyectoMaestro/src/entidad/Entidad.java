@@ -32,6 +32,10 @@ public class Entidad {
     protected int offset;
 
     // --- MÉTODOS BASE (Placeholders necesarios para sobrescribir) ---
+    public void recibeDanio(int danio) {
+        this.vidaActual -= danio;
+    }
+    
     
     public void update() {
         // Implementación base.
@@ -97,4 +101,5 @@ public class Entidad {
     public int getDanio() {
     	return danio;
     }
+
 }

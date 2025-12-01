@@ -35,23 +35,17 @@ public class Enemigo extends Entidad {
 
     //Establece los valores iniciales del enemigo (posición y velocidad).
     public void configuracionInicial() {
-        // Posición inicial del enemigo en el mapa del MUNDO (ajustar según tu mapa).
         this.setPosicionAleatoria();
-
-        // Velocidad de movimiento.
         this.velocidad = 2;
         this.direccion = "abajo"; 
         
-        //vida del enemigo
-        this.maxVida = 1;
+        this.maxVida = 4; // Aumentado a 4. Como el proyectil hace 1 de daño, requiere 4 disparos.
         this.vidaActual = this.maxVida;
-        this.danio = 1;
+        this.danio = 1; // El daño que le hace al jugador (1 vida)
         
-        //colisiones
         this.hitbox = 48;
-		this.offset = (gP.getTamanioTile() - hitbox) / 2;
-		this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
-        
+        this.offset = (gP.getTamanioTile() - hitbox) / 2;
+        this.areaSolida = new Rectangle(offset, offset, hitbox, hitbox);
     }
     
     public void getSpritesEnemigo() {
