@@ -183,6 +183,14 @@ public class GamePanel extends JPanel implements Runnable {
             return; // Salimos para no procesar nada más
         }
     	
+    	if (gameState == winState) {
+            if (mT.getDisparo() == true) {
+                reiniciarJuego();      
+                gameState = playState; 
+            }
+            return; 
+        }
+    	
         if (gameState == playState) {
             this.jugador.update();
 
@@ -254,7 +262,7 @@ public class GamePanel extends JPanel implements Runnable {
                             if(musica!= null) musica.stop();
                             ui.victoria = true;
                             reproducir(aud_victoria);
-                            this.gameState = gameOverState;
+                            this.gameState = winState;
                         }
                     }
                 }
