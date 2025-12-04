@@ -25,8 +25,6 @@ public class DetectorColisiones {
      */
     public void revisaTile(Entidad entidad) {
         
-        // ¡SE ELIMINA LA VERIFICACIÓN 'if (entidad instanceof Jugador)'!
-        // Y se usan SÓLO los getters de Entidad, eliminando los casts que causan el error.
 
         // Calcula las coordenadas del área de colisión de la entidad en el mundo, 
         // usando los getters de la superclase Entidad.

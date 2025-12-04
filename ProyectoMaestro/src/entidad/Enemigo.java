@@ -175,11 +175,10 @@ public class Enemigo extends Entidad {
     }
     
     
-    //=====================================================================
+  
     public void recibeDanio(int danio) {
         this.vidaActual -= danio;
     }
-    //===============================================
 
     /**
      * Dibuja el enemigo en la pantalla como un rectángulo rojo.
@@ -210,7 +209,6 @@ public class Enemigo extends Entidad {
         }
 
 
-     // --- DIBUJO DE LA BARRA DE VIDA ---
 
         int anchoBarra = gP.getTamanioTile(); 
         int altoBarra = 5; 
